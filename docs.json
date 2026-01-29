@@ -58,7 +58,11 @@
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Personas",
+            "pages": []
+          },
+          {
+            "group": "Plants (Example)",
             "pages": [
               "api-reference/endpoint/get",
               "api-reference/endpoint/create",
