@@ -41,3 +41,6 @@ Install our GitHub app from your [dashboard](https://dashboard.mintlify.com/sett
 
 ### Resources
 - [Mintlify documentation](https://mintlify.com/docs)
+
+---
+*Synced from [aibloom/bloom](https://github.com/aibloom/bloom) monorepo*
