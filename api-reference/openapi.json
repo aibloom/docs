@@ -905,7 +905,7 @@
       "post": {
         "tags": ["Uploads"],
         "summary": "Upload file",
-        "description": "Upload an avatar image or voice sample. Supports multipart/form-data or JSON with a URL to fetch from.",
+        "description": "Upload an avatar image or voice sample. Supports multipart/form-data or JSON with a URL to fetch from. Automatically updates the persona's `avatar_url` or `voice_sample_url` field.",
         "operationId": "upload",
         "requestBody": {
           "content": {
@@ -945,7 +945,9 @@
                       "type": "object",
                       "properties": {
                         "key": { "type": "string", "description": "R2 storage key" },
-                        "url": { "type": "string", "description": "Public URL" }
+                        "url": { "type": "string", "description": "Public URL" },
+                        "category": { "type": "string", "enum": ["avatar", "voice"], "description": "Upload category" },
+                        "persona_id": { "type": "string", "format": "uuid", "description": "Persona that was updated" }
                       }
                     }
                   }
