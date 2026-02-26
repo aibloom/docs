@@ -14,13 +14,13 @@ curl -X POST https://reelmirror.com/api/v1/api-keys \
   -d '{"name": "My First Key"}'
 ```
 
-Save the returned `key` value securely. It starts with `sk_live_` and is only shown once.
+Save the returned `key` value securely. It starts with `rm_` and is only shown once.
 
 ## 2. Create a persona
 
 ```bash
 curl -X POST https://reelmirror.com/api/v1/personas \
-  -H "Authorization: Bearer sk_live_YOUR_KEY" \
+  -H "Authorization: Bearer rm_YOUR_KEY" \
   -H "Content-Type: application/json" \
   -d '{"name": "Travel Photographer"}'
 ```
@@ -33,7 +33,7 @@ Every persona needs an avatar before generating content:
 
 ```bash
 curl -X POST https://reelmirror.com/api/v1/uploads \
-  -H "Authorization: Bearer sk_live_YOUR_KEY" \
+  -H "Authorization: Bearer rm_YOUR_KEY" \
   -F "file=@avatar.jpg" \
   -F "category=avatar" \
   -F "persona_id=YOUR_PERSONA_ID"
@@ -47,7 +47,7 @@ Link an Instagram account to track:
 
 ```bash
 curl -X POST https://reelmirror.com/api/v1/personas/YOUR_PERSONA_ID/sources \
-  -H "Authorization: Bearer sk_live_YOUR_KEY" \
+  -H "Authorization: Bearer rm_YOUR_KEY" \
   -H "Content-Type: application/json" \
   -d '{"platform": "instagram", "username": "natgeo"}'
 ```
@@ -58,14 +58,14 @@ Pull content from all tracked sources:
 
 ```bash
 curl -X POST https://reelmirror.com/api/v1/personas/YOUR_PERSONA_ID/sync \
-  -H "Authorization: Bearer sk_live_YOUR_KEY"
+  -H "Authorization: Bearer rm_YOUR_KEY"
 ```
 
 This returns `job_ids` you can poll:
 
 ```bash
 curl https://reelmirror.com/api/v1/sync-jobs/JOB_ID \
-  -H "Authorization: Bearer sk_live_YOUR_KEY"
+  -H "Authorization: Bearer rm_YOUR_KEY"
 ```
 
 Wait until status is `completed`.
@@ -76,7 +76,7 @@ Pick a source post and generate:
 
 ```bash
 curl -X POST https://reelmirror.com/api/v1/generate \
-  -H "Authorization: Bearer sk_live_YOUR_KEY" \
+  -H "Authorization: Bearer rm_YOUR_KEY" \
   -H "Content-Type: application/json" \
   -d '{"source_post_id": "SOURCE_POST_ID", "persona_id": "YOUR_PERSONA_ID"}'
 ```
@@ -85,7 +85,7 @@ curl -X POST https://reelmirror.com/api/v1/generate \
 
 ```bash
 curl https://reelmirror.com/api/v1/generated-posts/GENERATED_POST_ID \
-  -H "Authorization: Bearer sk_live_YOUR_KEY"
+  -H "Authorization: Bearer rm_YOUR_KEY"
 ```
 
 When `status` is `completed`, the `media_items` array will contain `url` fields with your generated content.
@@ -96,7 +96,7 @@ Skip steps 4-6 and clone directly from an Instagram URL:
 
 ```bash
 curl -X POST https://reelmirror.com/api/v1/clone-url \
-  -H "Authorization: Bearer sk_live_YOUR_KEY" \
+  -H "Authorization: Bearer rm_YOUR_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "url": "https://www.instagram.com/p/ABC123/",

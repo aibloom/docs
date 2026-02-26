@@ -20,7 +20,7 @@
       "bearerAuth": {
         "type": "http",
         "scheme": "bearer",
-        "description": "API key (sk_live_xxx) or JWT token"
+        "description": "API key (rm_xxx) or JWT token"
       }
     },
     "schemas": {

@@ -16,14 +16,14 @@ All endpoints are prefixed with `/v1`.
 Every request must include an `Authorization` header with a Bearer token:
 
 ```bash
-Authorization: Bearer sk_live_your_api_key
+Authorization: Bearer rm_your_api_key
 ```
 
 Two token types are supported:
 
 | Type | Format | Use case |
 |------|--------|----------|
-| API key | `sk_live_xxxxx` | Programmatic access |
+| API key | `rm_xxxxx` | Programmatic access |
 | JWT | Supabase session token | Browser/frontend |
 
 API keys are created via `POST /v1/api-keys`. JWT users automatically have all scopes.

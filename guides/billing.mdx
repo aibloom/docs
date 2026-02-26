@@ -31,7 +31,7 @@ When generating content, you can set `discount_mode: true` to use lower-quality 
 
 ```bash
 curl https://reelmirror.com/api/v1/billing/balance \
-  -H "Authorization: Bearer sk_live_YOUR_KEY"
+  -H "Authorization: Bearer rm_YOUR_KEY"
 ```
 
 Response:
@@ -52,7 +52,7 @@ View your transaction history with pagination:
 
 ```bash
 curl "https://reelmirror.com/api/v1/billing/transactions?limit=10&offset=0" \
-  -H "Authorization: Bearer sk_live_YOUR_KEY"
+  -H "Authorization: Bearer rm_YOUR_KEY"
 ```
 
 Response:
