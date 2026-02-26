@@ -1,0 +1,100 @@
+---
+title: "Billing"
+description: "Credits, pricing, and balance management"
+---
+
+## Overview
+
+ReelMirror uses a credit-based billing system. You pre-load your account with credits, and each operation deducts from your balance.
+
+## Pricing
+
+| Operation | Cost |
+|-----------|------|
+| Sync (per creator) | $0.02 |
+| Image generation | $0.05 per image |
+| Video generation | $0.20 per video |
+| Voice conversion | $0.15 per video |
+
+Generation costs are calculated based on the source post's media items. A post with 3 images costs $0.15. A post with 1 video and 2 images costs $0.30.
+
+### Discount mode
+
+When generating content, you can set `discount_mode: true` to use lower-quality (faster, cheaper) generation:
+
+| Operation | Discount cost |
+|-----------|---------------|
+| Image generation | $0.03 per image |
+| Video generation | $0.12 per video |
+
+## Checking Your Balance
+
+```bash
+curl https://reelmirror.com/api/v1/billing/balance \
+  -H "Authorization: Bearer sk_live_YOUR_KEY"
+```
+
+Response:
+
+```json
+{
+  "balance_cents": 1050,
+  "balance_dollars": 10.50,
+  "auto_reload_enabled": false,
+  "auto_reload_amount_cents": null,
+  "auto_reload_threshold_cents": null
+}
+```
+
+## Transaction History
+
+View your transaction history with pagination:
+
+```bash
+curl "https://reelmirror.com/api/v1/billing/transactions?limit=10&offset=0" \
+  -H "Authorization: Bearer sk_live_YOUR_KEY"
+```
+
+Response:
+
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "amount_cents": -20,
+      "type": "generation",
+      "description": "Generated content from source post",
+      "created_at": "2025-01-15T12:00:00Z"
+    }
+  ],
+  "count": 42
+}
+```
+
+Positive amounts are credits (deposits, refunds). Negative amounts are debits (generation, sync, voice conversion).
+
+## Auto-Reload
+
+You can configure auto-reload from the [dashboard](https://reelmirror.com/dashboard) to automatically top up your balance via Stripe when it falls below a threshold. This ensures uninterrupted API usage.
+
+When auto-reload is enabled and your balance drops below the threshold during an API operation, a reload is triggered automatically in the background.
+
+## Insufficient Balance
+
+If you attempt an operation without sufficient balance, the API returns a `402` error:
+
+```json
+{
+  "error": {
+    "code": "INSUFFICIENT_BALANCE",
+    "message": "Insufficient balance. Need $0.32, have $0.10.",
+    "details": {
+      "need_cents": 32,
+      "have_cents": 10
+    }
+  }
+}
+```
+
+Check your balance before triggering expensive operations to avoid failed requests.

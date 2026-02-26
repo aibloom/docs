@@ -1,0 +1,174 @@
+---
+title: "Content Generation"
+description: "How AI content generation works"
+---
+
+## Overview
+
+ReelMirror generates AI content by analyzing source posts from tracked Instagram/TikTok accounts and creating new content that matches the creator's style. Generation is asynchronous — you start a job and poll for results.
+
+## Generation Flow
+
+```
+1. Add source → 2. Sync content → 3. Generate → 4. Poll status → 5. Retrieve media
+```
+
+### Step 1: Add a source
+
+Link an Instagram account to your persona:
+
+```bash
+curl -X POST https://reelmirror.com/api/v1/personas/PERSONA_ID/sources \
+  -H "Authorization: Bearer sk_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"platform": "instagram", "username": "natgeo"}'
+```
+
+### Step 2: Sync content
+
+Pull the latest posts from all tracked sources:
+
+```bash
+curl -X POST https://reelmirror.com/api/v1/personas/PERSONA_ID/sync \
+  -H "Authorization: Bearer sk_live_YOUR_KEY"
+```
+
+This returns sync job IDs you can poll:
+
+```json
+{
+  "job_ids": ["uuid-1", "uuid-2"],
+  "total_cost_cents": 4
+}
+```
+
+Poll each job until `status` is `completed`:
+
+```bash
+curl https://reelmirror.com/api/v1/sync-jobs/JOB_ID \
+  -H "Authorization: Bearer sk_live_YOUR_KEY"
+```
+
+### Step 3: Generate content
+
+Browse synced content and pick a source post:
+
+```bash
+curl "https://reelmirror.com/api/v1/personas/PERSONA_ID/source-posts?limit=10" \
+  -H "Authorization: Bearer sk_live_YOUR_KEY"
+```
+
+Then generate from it:
+
+```bash
+curl -X POST https://reelmirror.com/api/v1/generate \
+  -H "Authorization: Bearer sk_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "source_post_id": "SOURCE_POST_ID",
+    "persona_id": "PERSONA_ID"
+  }'
+```
+
+Response (HTTP 202):
+
+```json
+{
+  "generated_post_id": "uuid",
+  "media_items": [
+    {"id": "uuid", "media_type": "image", "status": "pending"},
+    {"id": "uuid", "media_type": "video", "status": "pending"}
+  ],
+  "total_cost_cents": 25
+}
+```
+
+### Step 4: Poll for results
+
+```bash
+curl https://reelmirror.com/api/v1/generated-posts/GENERATED_POST_ID \
+  -H "Authorization: Bearer sk_live_YOUR_KEY"
+```
+
+When all media items have `status: "completed"`, the `url` fields contain your generated content.
+
+## Quick Clone
+
+Skip the sync step entirely — clone directly from an Instagram URL:
+
+```bash
+curl -X POST https://reelmirror.com/api/v1/clone-url \
+  -H "Authorization: Bearer sk_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://www.instagram.com/p/ABC123/",
+    "persona_id": "PERSONA_ID"
+  }'
+```
+
+This fetches the source post and triggers generation in one step.
+
+## Regenerating Individual Items
+
+If a specific media item didn't turn out well, regenerate just that item:
+
+```bash
+curl -X POST https://reelmirror.com/api/v1/generate/media-item \
+  -H "Authorization: Bearer sk_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"generated_media_item_id": "ITEM_ID"}'
+```
+
+This creates a new version of the media item. Poll the item ID for the updated result.
+
+## Voice Conversion
+
+Add voice conversion to a completed video:
+
+```bash
+curl -X POST https://reelmirror.com/api/v1/generate/voice-convert \
+  -H "Authorization: Bearer sk_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"generated_media_item_id": "ITEM_ID"}'
+```
+
+The persona must have a voice sample uploaded. Voice conversion costs $0.15 per video.
+
+## Making Content Public
+
+Toggle a generated post's public visibility:
+
+```bash
+curl -X POST https://reelmirror.com/api/v1/generate/toggle-public \
+  -H "Authorization: Bearer sk_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"generated_post_id": "POST_ID"}'
+```
+
+<Note>
+  Once a post is made public, it cannot be made private again for 20 days.
+</Note>
+
+## Generation Statuses
+
+| Status | Meaning |
+|--------|---------|
+| `pending` | Queued for processing |
+| `running` | Currently being generated |
+| `completed` | Done — media URL available |
+| `failed` | Generation failed |
+
+## Discount Mode
+
+Pass `discount_mode: true` to the generate endpoint for faster, cheaper (but lower quality) generation:
+
+```bash
+curl -X POST https://reelmirror.com/api/v1/generate \
+  -H "Authorization: Bearer sk_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "source_post_id": "SOURCE_POST_ID",
+    "persona_id": "PERSONA_ID",
+    "discount_mode": true
+  }'
+```

@@ -1,88 +1,105 @@
 ---
-title: "Quickstart!aa"
-description: "Start building awesome documentation in minutes!!!"
+title: "Quickstart"
+description: "Create your first AI clone in 5 minutes"
 ---
 
-## Get started in three steps
+## 1. Create an API key
 
-Get your documentation site running locally and make your first customization.
+First, create an API key from the [dashboard](https://reelmirror.com/dashboard) or via the API using your JWT token:
 
-### Step 1: Set up your local environment
+```bash
+curl -X POST https://reelmirror.com/api/v1/api-keys \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "My First Key"}'
+```
 
-<AccordionGroup>
-  <Accordion title="Clone your docs locally" icon="copy">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
+Save the returned `key` value securely. It starts with `sk_live_` and is only shown once.
 
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
+## 2. Create a persona
 
-  </Accordion>
-  <Accordion title="Start the preview server" icon="rectangle-terminal">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
+```bash
+curl -X POST https://reelmirror.com/api/v1/personas \
+  -H "Authorization: Bearer sk_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Travel Photographer"}'
+```
 
-    <Tip>
-      Your preview updates automatically as you edit files.
-    </Tip>
+Note the `id` from the response.
 
-  </Accordion>
-</AccordionGroup>
+## 3. Upload an avatar
 
-### Step 2: Deploy your changes
+Every persona needs an avatar before generating content:
 
-<AccordionGroup>
-  <Accordion title="Install our GitHub app" icon="github">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
+```bash
+curl -X POST https://reelmirror.com/api/v1/uploads \
+  -H "Authorization: Bearer sk_live_YOUR_KEY" \
+  -F "file=@avatar.jpg" \
+  -F "category=avatar" \
+  -F "persona_id=YOUR_PERSONA_ID"
+```
 
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
+## 4. Add a source
 
-  </Accordion>
-  <Accordion title="Update your site name and colors" icon="palette">
-    For a first change, let's update the name and colors of your docs site.
+Link an Instagram account to track:
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+```bash
+curl -X POST https://reelmirror.com/api/v1/personas/YOUR_PERSONA_ID/sources \
+  -H "Authorization: Bearer sk_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"platform": "instagram", "username": "natgeo"}'
+```
 
-    <Tip>
-      Try changing the primary color to see an immediate difference!
-    </Tip>
+## 5. Sync content
 
-  </Accordion>
-</AccordionGroup>
+Pull content from all tracked sources:
 
-### Step 3: Go live
+```bash
+curl -X POST https://reelmirror.com/api/v1/personas/YOUR_PERSONA_ID/sync \
+  -H "Authorization: Bearer sk_live_YOUR_KEY"
+```
 
-<Accordion title="Publish your docs" icon="rocket">
-  1. Commit and push your changes. 2. Your docs will update and be live in
-  moments!
-</Accordion>
+This returns `job_ids` you can poll:
 
-## Next steps
+```bash
+curl https://reelmirror.com/api/v1/sync-jobs/JOB_ID \
+  -H "Authorization: Bearer sk_live_YOUR_KEY"
+```
 
-Now that you have your docs running, explore these key features:
+Wait until status is `completed`.
 
-<CardGroup cols={2}>
-  <Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-    Learn MDX syntax and start writing your documentation.
-  </Card>
-  <Card title="Customize style" icon="palette" href="/essentials/settings">
-    Make your docs match your brand perfectly.
-  </Card>
-  <Card title="Add code examples" icon="square-code" href="/essentials/code">
-    Include syntax-highlighted code blocks.
-  </Card>
-  <Card
-    title="API documentation"
-    icon="code"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API docs from OpenAPI specs.
-  </Card>
-</CardGroup>
+## 6. Generate content
 
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join
-  our [community](https://mintlify.com/community).
-</Note>
+Pick a source post and generate:
+
+```bash
+curl -X POST https://reelmirror.com/api/v1/generate \
+  -H "Authorization: Bearer sk_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"source_post_id": "SOURCE_POST_ID", "persona_id": "YOUR_PERSONA_ID"}'
+```
+
+## 7. Poll for results
+
+```bash
+curl https://reelmirror.com/api/v1/generated-posts/GENERATED_POST_ID \
+  -H "Authorization: Bearer sk_live_YOUR_KEY"
+```
+
+When `status` is `completed`, the `media_items` array will contain `url` fields with your generated content.
+
+## Quick clone (shortcut)
+
+Skip steps 4-6 and clone directly from an Instagram URL:
+
+```bash
+curl -X POST https://reelmirror.com/api/v1/clone-url \
+  -H "Authorization: Bearer sk_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://www.instagram.com/p/ABC123/",
+    "persona_id": "YOUR_PERSONA_ID"
+  }'
+```
+
+This fetches the post and triggers generation in one step.

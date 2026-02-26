@@ -1,0 +1,136 @@
+---
+title: "Authentication"
+description: "API keys, JWT tokens, and scopes"
+---
+
+## Overview
+
+The ReelMirror API supports two authentication methods:
+
+1. **API keys** — For programmatic/server-side access
+2. **JWT tokens** — For browser-based access via Supabase Auth
+
+Every request must include an `Authorization` header:
+
+```bash
+Authorization: Bearer <token>
+```
+
+## API Keys
+
+API keys are the recommended way to authenticate programmatic access.
+
+### Creating a key
+
+Create an API key from the [dashboard](https://reelmirror.com/dashboard) or via the API using your JWT token:
+
+```bash
+curl -X POST https://reelmirror.com/api/v1/api-keys \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Production Key", "scopes": ["personas:read", "content:read"]}'
+```
+
+Response:
+
+```json
+{
+  "id": "uuid",
+  "name": "Production Key",
+  "key": "sk_live_abc123...",
+  "scopes": ["personas:read", "content:read"],
+  "created_at": "2025-01-01T00:00:00Z"
+}
+```
+
+<Warning>
+  The `key` field is only returned once at creation time. Store it securely — you cannot retrieve it later.
+</Warning>
+
+### Key format
+
+API keys follow the format `sk_live_` followed by 48 random characters. Keys are stored as SHA-256 hashes in the database.
+
+### Listing keys
+
+```bash
+curl https://reelmirror.com/api/v1/api-keys \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Revoking a key
+
+```bash
+curl -X DELETE https://reelmirror.com/api/v1/api-keys/KEY_ID \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+## JWT Tokens
+
+JWT tokens are Supabase session tokens issued when a user signs in via the dashboard. They are primarily used for frontend/browser access.
+
+JWT users automatically have all scopes — no scope restrictions apply.
+
+## Scopes
+
+API keys can be restricted to specific scopes. If no scopes are specified when creating a key, all scopes except `billing:read` are granted by default.
+
+| Scope | Description |
+|-------|-------------|
+| `personas:read` | Read personas |
+| `personas:write` | Create, update, delete personas |
+| `sources:read` | List sources |
+| `sources:write` | Add, remove sources |
+| `content:read` | Read content, poll generation status |
+| `content:write` | Generate content, clone URLs, toggle public |
+| `sync:write` | Trigger content sync |
+| `billing:read` | View balance and transactions |
+| `uploads:write` | Upload avatar images and voice samples |
+
+### Scope requirements by endpoint
+
+| Endpoint | Method | Required scope |
+|----------|--------|----------------|
+| `/v1/api-keys` | POST, GET, DELETE | None (always allowed) |
+| `/v1/personas` | GET | `personas:read` |
+| `/v1/personas` | POST, PATCH, DELETE | `personas:write` |
+| `/v1/personas/:id/sources` | GET | `sources:read` |
+| `/v1/personas/:id/sources` | POST, DELETE | `sources:write` |
+| `/v1/personas/:id/sync` | POST | `sync:write` |
+| `/v1/personas/:id/source-posts` | GET | `content:read` |
+| `/v1/personas/:id/generated-posts` | GET | `content:read` |
+| `/v1/generate` | POST | `content:write` |
+| `/v1/clone-url` | POST | `content:write` |
+| `/v1/generate/toggle-public` | POST | `content:write` |
+| `/v1/sync-jobs/:id` | GET | `content:read` |
+| `/v1/generated-posts/:id` | GET | `content:read` |
+| `/v1/generated-media-items/:id` | GET | `content:read` |
+| `/v1/billing/balance` | GET | `billing:read` |
+| `/v1/billing/transactions` | GET | `billing:read` |
+| `/v1/uploads` | POST | `uploads:write` |
+
+## Rate Limiting
+
+Rate limits are applied per authentication identity:
+
+| Auth type | Limit |
+|-----------|-------|
+| API key | 60 requests/minute |
+| JWT | 120 requests/minute |
+
+Rate limit information is included in every response:
+
+```
+X-RateLimit-Limit: 60
+X-RateLimit-Remaining: 58
+X-RateLimit-Reset: 1704067260
+```
+
+When the limit is exceeded, the API returns a `429` status with the `RATE_LIMITED` error code.
+
+## Security Best Practices
+
+- **Never expose API keys in client-side code.** Use them only in server-side applications.
+- **Use the minimum scopes necessary.** Create separate keys for different services with only the scopes they need.
+- **Rotate keys regularly.** Delete old keys and create new ones periodically.
+- **Monitor usage.** Check `last_used_at` on your API keys via the list endpoint.

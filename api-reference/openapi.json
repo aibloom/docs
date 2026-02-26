@@ -1,16 +1,13 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "OpenAPI Plant Store",
-    "description": "A sample API that uses a plant store as an example to demonstrate features in the OpenAPI specification",
-    "license": {
-      "name": "MIT"
-    },
+    "title": "ReelMirror API",
+    "description": "AI-powered content cloning platform. Create personas, track social accounts, sync content, and generate AI clones.",
     "version": "1.0.0"
   },
   "servers": [
     {
-      "url": "http://sandbox.mintlify.com"
+      "url": "https://reelmirror.com/api"
     }
   ],
   "security": [
@@ -18,77 +15,226 @@
       "bearerAuth": []
     }
   ],
-  "paths": {
-    "/plants": {
-      "get": {
-        "description": "Returns all plants from the system that the user has access to",
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "The maximum number of results to return",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "API key (sk_live_xxx) or JWT token"
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": ["VALIDATION_ERROR", "UNAUTHORIZED", "INSUFFICIENT_BALANCE", "FORBIDDEN", "NOT_FOUND", "CONFLICT", "RATE_LIMITED", "INTERNAL_ERROR", "UPSTREAM_ERROR", "SERVICE_UNAVAILABLE"]
+              },
+              "message": { "type": "string" },
+              "details": { "type": "object" }
+            },
+            "required": ["code", "message"]
           }
-        ],
-        "responses": {
-          "200": {
-            "description": "Plant response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Plant"
+        }
+      },
+      "Persona": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string" },
+          "description": { "type": "string", "nullable": true },
+          "writing_style": { "type": "string", "nullable": true },
+          "avatar_url": { "type": "string", "nullable": true },
+          "voice_sample_url": { "type": "string", "nullable": true },
+          "discount_mode": { "type": "boolean" },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Source": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "creator_id": { "type": "string", "format": "uuid" },
+          "platform": { "type": "string", "enum": ["instagram", "tiktok"] },
+          "username": { "type": "string" },
+          "status": { "type": "string" },
+          "last_synced_at": { "type": "string", "format": "date-time", "nullable": true },
+          "content_count": { "type": "integer" },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "GeneratedPost": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "persona_id": { "type": "string", "format": "uuid" },
+          "source_post_id": { "type": "string", "format": "uuid" },
+          "status": { "type": "string", "enum": ["pending", "generating", "completed", "failed"] },
+          "caption": { "type": "string", "nullable": true },
+          "media_items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/GeneratedMediaItem" }
+          },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "GeneratedMediaItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "media_type": { "type": "string", "enum": ["image", "video"] },
+          "position": { "type": "integer" },
+          "status": { "type": "string", "enum": ["pending", "generating", "completed", "failed"] },
+          "url": { "type": "string", "nullable": true },
+          "is_public": { "type": "boolean" },
+          "discount_applied": { "type": "boolean" },
+          "voice_conversion_status": { "type": "string", "nullable": true },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "SyncJob": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "status": { "type": "string", "enum": ["pending", "running", "completed", "failed", "skipped"] },
+          "creator": {
+            "type": "object",
+            "properties": {
+              "handle": { "type": "string" },
+              "platform": { "type": "string" }
+            }
+          },
+          "estimated_cost_cents": { "type": "integer" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Balance": {
+        "type": "object",
+        "properties": {
+          "balance_cents": { "type": "integer" },
+          "balance_dollars": { "type": "string" },
+          "auto_reload": { "type": "boolean" },
+          "reload_threshold_cents": { "type": "integer", "nullable": true },
+          "reload_amount_cents": { "type": "integer", "nullable": true }
+        }
+      },
+      "Transaction": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "amount_cents": { "type": "integer" },
+          "operation_type": { "type": "string" },
+          "description": { "type": "string" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "generated_post_id": { "type": "string", "format": "uuid", "nullable": true },
+          "generated_media_item_id": { "type": "string", "format": "uuid", "nullable": true },
+          "refund_of_id": { "type": "string", "format": "uuid", "nullable": true }
+        }
+      }
+    },
+    "parameters": {
+      "limit": {
+        "name": "limit",
+        "in": "query",
+        "schema": { "type": "integer", "default": 20, "maximum": 100 },
+        "description": "Maximum number of results to return"
+      },
+      "offset": {
+        "name": "offset",
+        "in": "query",
+        "schema": { "type": "integer", "default": 0 },
+        "description": "Number of results to skip"
+      }
+    }
+  },
+  "tags": [
+    { "name": "API Keys", "description": "Manage API keys" },
+    { "name": "Personas", "description": "Create and manage personas" },
+    { "name": "Sources", "description": "Track social accounts" },
+    { "name": "Sync", "description": "Sync content from sources" },
+    { "name": "Generation", "description": "Generate AI content" },
+    { "name": "Content", "description": "Browse synced and generated content" },
+    { "name": "Billing", "description": "Balance and transaction history" },
+    { "name": "Uploads", "description": "Upload files" }
+  ],
+  "paths": {
+    "/v1/api-keys": {
+      "post": {
+        "tags": ["API Keys"],
+        "summary": "Create API key",
+        "operationId": "createApiKey",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": { "type": "string", "description": "Display name for the key" },
+                  "scopes": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Permission scopes. Defaults to all except billing:read."
                   }
                 }
               }
             }
-          },
-          "400": {
-            "description": "Unexpected error",
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "API key created. The full key is only returned once.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "string" },
+                    "name": { "type": "string" },
+                    "key": { "type": "string", "description": "Full API key (only shown once)" },
+                    "scopes": { "type": "array", "items": { "type": "string" } },
+                    "created_at": { "type": "string", "format": "date-time" }
+                  }
                 }
               }
             }
           }
         }
       },
-      "post": {
-        "description": "Creates a new plant in the store",
-        "requestBody": {
-          "description": "Plant to add to the store",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NewPlant"
-              }
-            }
-          },
-          "required": true
-        },
+      "get": {
+        "tags": ["API Keys"],
+        "summary": "List API keys",
+        "operationId": "listApiKeys",
         "responses": {
           "200": {
-            "description": "plant response",
+            "description": "List of API keys",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Plant"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "string" },
+                          "name": { "type": "string" },
+                          "key_hint": { "type": "string" },
+                          "scopes": { "type": "array", "items": { "type": "string" } },
+                          "created_at": { "type": "string", "format": "date-time" },
+                          "last_used_at": { "type": "string", "format": "date-time", "nullable": true }
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -96,121 +242,718 @@
         }
       }
     },
-    "/plants/{id}": {
+    "/v1/api-keys/{key_id}": {
       "delete": {
-        "description": "Deletes a single plant based on the ID supplied",
+        "tags": ["API Keys"],
+        "summary": "Delete API key",
+        "operationId": "deleteApiKey",
         "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "ID of plant to delete",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
+          { "name": "key_id", "in": "path", "required": true, "schema": { "type": "string" } }
         ],
         "responses": {
-          "204": {
-            "description": "Plant deleted",
-            "content": {}
-          },
-          "400": {
-            "description": "unexpected error",
+          "200": {
+            "description": "Key deleted",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "id": { "type": "string" }
+                  }
                 }
               }
             }
           }
         }
       }
-    }
-  },
-  "webhooks": {
-    "/plant/webhook": {
+    },
+    "/v1/personas": {
       "post": {
-        "description": "Information about a new plant added to the store",
+        "tags": ["Personas"],
+        "summary": "Create persona",
+        "operationId": "createPersona",
         "requestBody": {
-          "description": "Plant added to the store",
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NewPlant"
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": { "type": "string" },
+                  "description": { "type": "string" },
+                  "writing_style": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Persona created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/Persona" } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": ["Personas"],
+        "summary": "List personas",
+        "operationId": "listPersonas",
+        "parameters": [
+          { "$ref": "#/components/parameters/limit" },
+          { "$ref": "#/components/parameters/offset" }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of personas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/Persona" } },
+                    "count": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/personas/{persona_id}": {
+      "get": {
+        "tags": ["Personas"],
+        "summary": "Get persona",
+        "operationId": "getPersona",
+        "parameters": [
+          { "name": "persona_id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persona details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/Persona" } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": ["Personas"],
+        "summary": "Update persona",
+        "operationId": "updatePersona",
+        "parameters": [
+          { "name": "persona_id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "description": { "type": "string" },
+                  "writing_style": { "type": "string" },
+                  "discount_mode": { "type": "boolean" }
+                }
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Return a 200 status to indicate that the data was received successfully"
-          }
-        }
-      }
-    }
-  },
-  "components": {
-    "schemas": {
-      "Plant": {
-        "required": [
-          "name"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "description": "The name of the plant",
-            "type": "string"
-          },
-          "tag": {
-            "description": "Tag to specify the type",
-            "type": "string"
-          }
-        }
-      },
-      "NewPlant": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/Plant"
-          },
-          {
-            "required": [
-              "id"
-            ],
-            "type": "object",
-            "properties": {
-              "id": {
-                "description": "Identification number of the plant",
-                "type": "integer",
-                "format": "int64"
+            "description": "Persona updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/Persona" } }
+                }
               }
             }
           }
-        ]
+        }
       },
-      "Error": {
-        "required": [
-          "error",
-          "message"
+      "delete": {
+        "tags": ["Personas"],
+        "summary": "Delete persona",
+        "operationId": "deletePersona",
+        "parameters": [
+          { "name": "persona_id", "in": "path", "required": true, "schema": { "type": "string" } }
         ],
-        "type": "object",
-        "properties": {
-          "error": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
+        "responses": {
+          "200": {
+            "description": "Persona deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "status": { "type": "string" }, "id": { "type": "string" } }
+                }
+              }
+            }
           }
         }
       }
     },
-    "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer"
+    "/v1/personas/{persona_id}/sources": {
+      "post": {
+        "tags": ["Sources"],
+        "summary": "Add source",
+        "operationId": "addSource",
+        "parameters": [
+          { "name": "persona_id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["platform", "username"],
+                "properties": {
+                  "platform": { "type": "string", "enum": ["instagram", "tiktok"] },
+                  "username": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Source added",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/Source" } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": ["Sources"],
+        "summary": "List sources",
+        "operationId": "listSources",
+        "parameters": [
+          { "name": "persona_id", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "$ref": "#/components/parameters/limit" },
+          { "$ref": "#/components/parameters/offset" }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of sources",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/Source" } },
+                    "count": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/personas/{persona_id}/sources/{source_id}": {
+      "delete": {
+        "tags": ["Sources"],
+        "summary": "Remove source",
+        "operationId": "removeSource",
+        "parameters": [
+          { "name": "persona_id", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "source_id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Source removed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "status": { "type": "string" }, "id": { "type": "string" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/personas/{persona_id}/sync": {
+      "post": {
+        "tags": ["Sync"],
+        "summary": "Trigger sync",
+        "description": "Sync all sources for a persona. Debits balance for estimated API requests. Returns job IDs for status polling.",
+        "operationId": "triggerSync",
+        "parameters": [
+          { "name": "persona_id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "202": {
+            "description": "Sync started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "persona_id": { "type": "string" },
+                    "sources_count": { "type": "integer" },
+                    "job_ids": { "type": "array", "items": { "type": "string" } },
+                    "estimated_cost_cents": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sync-jobs/{job_id}": {
+      "get": {
+        "tags": ["Sync"],
+        "summary": "Get sync job status",
+        "operationId": "getSyncJob",
+        "parameters": [
+          { "name": "job_id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sync job status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/SyncJob" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/generate": {
+      "post": {
+        "tags": ["Generation"],
+        "summary": "Generate from source post",
+        "description": "Trigger AI content generation from a synced source post. Debits balance per media item + caption.",
+        "operationId": "generate",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["source_post_id", "persona_id"],
+                "properties": {
+                  "source_post_id": { "type": "string", "format": "uuid" },
+                  "persona_id": { "type": "string", "format": "uuid" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Generation started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "generated_post_id": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/generate/media-item": {
+      "post": {
+        "tags": ["Generation"],
+        "summary": "Regenerate media item",
+        "description": "Create a new version of a generated media item.",
+        "operationId": "regenerateMediaItem",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["generated_media_item_id"],
+                "properties": {
+                  "generated_media_item_id": { "type": "string", "format": "uuid" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Regeneration started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "generated_media_item_id": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/generate/voice-convert": {
+      "post": {
+        "tags": ["Generation"],
+        "summary": "Voice convert video",
+        "description": "Apply voice conversion to a completed generated video. Requires persona to have a voice sample.",
+        "operationId": "voiceConvert",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["generated_media_item_id"],
+                "properties": {
+                  "generated_media_item_id": { "type": "string", "format": "uuid" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Voice conversion started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "generated_media_item_id": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/generate/toggle-public": {
+      "post": {
+        "tags": ["Generation"],
+        "summary": "Toggle public visibility",
+        "description": "Make a generated media item public or private. Discounted public items are locked for 20 days.",
+        "operationId": "togglePublic",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["generated_media_item_id", "is_public"],
+                "properties": {
+                  "generated_media_item_id": { "type": "string", "format": "uuid" },
+                  "is_public": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Visibility updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "string" },
+                        "is_public": { "type": "boolean" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/clone-url": {
+      "post": {
+        "tags": ["Generation"],
+        "summary": "Clone from Instagram URL",
+        "description": "Fetch a single Instagram post by URL and generate AI content from it in one step.",
+        "operationId": "cloneUrl",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["url", "persona_id"],
+                "properties": {
+                  "url": { "type": "string", "description": "Instagram post/reel/TV URL" },
+                  "persona_id": { "type": "string", "format": "uuid" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Clone started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "generated_post_id": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/generated-posts/{post_id}": {
+      "get": {
+        "tags": ["Content"],
+        "summary": "Get generated post",
+        "description": "Get a generated post with all its media items. Use for polling generation status.",
+        "operationId": "getGeneratedPost",
+        "parameters": [
+          { "name": "post_id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Generated post with media items",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/GeneratedPost" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/generated-media-items/{item_id}": {
+      "get": {
+        "tags": ["Content"],
+        "summary": "Get generated media item",
+        "description": "Get a single generated media item. Use for polling item-level status.",
+        "operationId": "getGeneratedMediaItem",
+        "parameters": [
+          { "name": "item_id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Generated media item",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/GeneratedMediaItem" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/personas/{persona_id}/source-posts": {
+      "get": {
+        "tags": ["Content"],
+        "summary": "List source posts",
+        "description": "List synced source posts from a persona's tracked creators.",
+        "operationId": "listSourcePosts",
+        "parameters": [
+          { "name": "persona_id", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "$ref": "#/components/parameters/limit" },
+          { "$ref": "#/components/parameters/offset" }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of source posts with media items",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "type": "array", "items": { "type": "object" } },
+                    "count": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/personas/{persona_id}/generated-posts": {
+      "get": {
+        "tags": ["Content"],
+        "summary": "List generated posts",
+        "description": "List generated posts for a persona with their media items.",
+        "operationId": "listGeneratedPosts",
+        "parameters": [
+          { "name": "persona_id", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "$ref": "#/components/parameters/limit" },
+          { "$ref": "#/components/parameters/offset" }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of generated posts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/GeneratedPost" } },
+                    "count": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/billing/balance": {
+      "get": {
+        "tags": ["Billing"],
+        "summary": "Get balance",
+        "operationId": "getBalance",
+        "responses": {
+          "200": {
+            "description": "Current balance and auto-reload settings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/Balance" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/billing/transactions": {
+      "get": {
+        "tags": ["Billing"],
+        "summary": "List transactions",
+        "operationId": "listTransactions",
+        "parameters": [
+          { "$ref": "#/components/parameters/limit" },
+          { "$ref": "#/components/parameters/offset" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transaction history",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/Transaction" } },
+                    "count": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/uploads": {
+      "post": {
+        "tags": ["Uploads"],
+        "summary": "Upload file",
+        "description": "Upload an avatar image or voice sample. Supports multipart/form-data or JSON with a URL to fetch from.",
+        "operationId": "upload",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file", "category", "persona_id"],
+                "properties": {
+                  "file": { "type": "string", "format": "binary" },
+                  "category": { "type": "string", "enum": ["avatar", "voice"] },
+                  "persona_id": { "type": "string", "format": "uuid" }
+                }
+              }
+            },
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["url", "category", "persona_id"],
+                "properties": {
+                  "url": { "type": "string", "description": "URL to fetch file from" },
+                  "category": { "type": "string", "enum": ["avatar", "voice"] },
+                  "persona_id": { "type": "string", "format": "uuid" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "File uploaded and processed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "key": { "type": "string", "description": "R2 storage key" },
+                        "url": { "type": "string", "description": "Public URL" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }

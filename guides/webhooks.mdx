@@ -1,0 +1,20 @@
+---
+title: "Webhooks"
+description: "Get notified when events happen"
+---
+
+## Coming Soon
+
+Webhook support is planned for a future release. Webhooks will allow you to receive real-time notifications when:
+
+- A sync job completes or fails
+- Content generation finishes
+- Voice conversion completes
+
+In the meantime, use polling to check the status of async operations:
+
+- **Sync jobs**: `GET /v1/sync-jobs/{job_id}`
+- **Generated posts**: `GET /v1/generated-posts/{post_id}`
+- **Generated media items**: `GET /v1/generated-media-items/{item_id}`
+
+We recommend polling every 5-10 seconds for generation jobs and every 10-30 seconds for sync jobs.

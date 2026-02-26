@@ -1,33 +1,103 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: "API Reference"
+description: "Complete reference for the ReelMirror API"
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+## Base URL
 
-## Welcome
+```
+https://reelmirror.com/api
+```
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
-
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
+All endpoints are prefixed with `/v1`.
 
 ## Authentication
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+Every request must include an `Authorization` header with a Bearer token:
+
+```bash
+Authorization: Bearer sk_live_your_api_key
+```
+
+Two token types are supported:
+
+| Type | Format | Use case |
+|------|--------|----------|
+| API key | `sk_live_xxxxx` | Programmatic access |
+| JWT | Supabase session token | Browser/frontend |
+
+API keys are created via `POST /v1/api-keys`. JWT users automatically have all scopes.
+
+## Scopes
+
+API keys can be restricted to specific scopes:
+
+| Scope | Description |
+|-------|-------------|
+| `personas:read` | Read personas |
+| `personas:write` | Create, update, delete personas |
+| `sources:read` | List sources |
+| `sources:write` | Add, remove sources |
+| `content:read` | Read content, poll status |
+| `content:write` | Generate, clone, toggle public |
+| `sync:write` | Trigger sync |
+| `billing:read` | View balance and transactions |
+| `uploads:write` | Upload files |
+
+## Rate Limiting
+
+| Auth type | Limit |
+|-----------|-------|
+| API key | 60 requests/minute |
+| JWT | 120 requests/minute |
+
+Rate limit info is included in response headers:
+
+- `X-RateLimit-Limit` - Maximum requests per window
+- `X-RateLimit-Remaining` - Requests remaining
+- `X-RateLimit-Reset` - Unix timestamp when window resets
+
+## Error Format
+
+All errors follow a consistent format:
 
 ```json
-"security": [
-  {
-    "bearerAuth": []
+{
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Persona not found",
+    "details": {}
   }
-]
+}
+```
+
+| Code | Status | Description |
+|------|--------|-------------|
+| `VALIDATION_ERROR` | 400 | Invalid request body |
+| `UNAUTHORIZED` | 401 | Missing or invalid auth |
+| `INSUFFICIENT_BALANCE` | 402 | Not enough credits |
+| `FORBIDDEN` | 403 | Missing scope or permission |
+| `NOT_FOUND` | 404 | Resource not found |
+| `CONFLICT` | 409 | Duplicate resource |
+| `RATE_LIMITED` | 429 | Too many requests |
+| `INTERNAL_ERROR` | 500 | Server error |
+| `UPSTREAM_ERROR` | 502 | External service error |
+| `SERVICE_UNAVAILABLE` | 503 | Service temporarily down |
+
+## Pagination
+
+List endpoints support pagination via query parameters:
+
+| Parameter | Default | Max | Description |
+|-----------|---------|-----|-------------|
+| `limit` | 20 | 100 | Results per page |
+| `offset` | 0 | - | Results to skip |
+
+Response format:
+
+```json
+{
+  "data": [...],
+  "count": 42
+}
 ```
