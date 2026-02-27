@@ -748,11 +748,49 @@
         }
       }
     },
+    "/v1/generate/regenerate-post": {
+      "post": {
+        "tags": ["Generation"],
+        "summary": "Regenerate entire post",
+        "description": "Soft-delete all existing media items for a generated post and re-trigger generation from scratch. Debits balance for the full cost again.",
+        "operationId": "regeneratePost",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["generated_post_id"],
+                "properties": {
+                  "generated_post_id": { "type": "string", "format": "uuid" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Regeneration started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "generated_post_id": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/generated-posts/{post_id}": {
       "get": {
         "tags": ["Content"],
         "summary": "Get generated post",
-        "description": "Get a generated post with all its media items. Use for polling generation status.",
+        "description": "Get a generated post with all its media items. Use for polling generation status. Soft-deleted posts are excluded.",
         "operationId": "getGeneratedPost",
         "parameters": [
           { "name": "post_id", "in": "path", "required": true, "schema": { "type": "string" } }
@@ -770,13 +808,38 @@
             }
           }
         }
+      },
+      "delete": {
+        "tags": ["Content"],
+        "summary": "Delete generated post",
+        "description": "Soft-delete a generated post and all its media items. The source post can then be re-cloned. R2 files are cleaned up asynchronously.",
+        "operationId": "deleteGeneratedPost",
+        "parameters": [
+          { "name": "post_id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Post deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "id": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/v1/generated-media-items/{item_id}": {
       "get": {
         "tags": ["Content"],
         "summary": "Get generated media item",
-        "description": "Get a single generated media item. Use for polling item-level status.",
+        "description": "Get a single generated media item. Use for polling item-level status. Soft-deleted items are excluded.",
         "operationId": "getGeneratedMediaItem",
         "parameters": [
           { "name": "item_id", "in": "path", "required": true, "schema": { "type": "string" } }
@@ -789,6 +852,31 @@
                 "schema": {
                   "type": "object",
                   "properties": { "data": { "$ref": "#/components/schemas/GeneratedMediaItem" } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Content"],
+        "summary": "Delete generated media item",
+        "description": "Soft-delete a single generated media item. R2 files are cleaned up asynchronously.",
+        "operationId": "deleteGeneratedMediaItem",
+        "parameters": [
+          { "name": "item_id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Item deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "id": { "type": "string" }
+                  }
                 }
               }
             }

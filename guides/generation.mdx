@@ -108,7 +108,22 @@ curl -X POST https://reelmirror.com/api/v1/clone-url \
 
 This fetches the source post and triggers generation in one step.
 
-## Regenerating Individual Items
+## Regenerating Content
+
+### Regenerate an entire post
+
+Re-generate all media items and the caption for a post. Old items are soft-deleted and new ones are created:
+
+```bash
+curl -X POST https://reelmirror.com/api/v1/generate/regenerate-post \
+  -H "Authorization: Bearer rm_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"generated_post_id": "GENERATED_POST_ID"}'
+```
+
+This debits your balance for the full cost again. The same `generated_post_id` is reused.
+
+### Regenerate a single media item
 
 If a specific media item didn't turn out well, regenerate just that item:
 
@@ -148,6 +163,24 @@ curl -X POST https://reelmirror.com/api/v1/generate/toggle-public \
 <Note>
   Once a post is made public, it cannot be made private again for 20 days.
 </Note>
+
+## Deleting Generated Content
+
+Delete a generated post (and all its media items):
+
+```bash
+curl -X DELETE https://reelmirror.com/api/v1/generated-posts/GENERATED_POST_ID \
+  -H "Authorization: Bearer rm_YOUR_KEY"
+```
+
+Delete a single generated media item:
+
+```bash
+curl -X DELETE https://reelmirror.com/api/v1/generated-media-items/ITEM_ID \
+  -H "Authorization: Bearer rm_YOUR_KEY"
+```
+
+Deletion is a soft-delete — billing and analytics data is preserved. After deleting a generated post, the source post can be re-cloned. R2 storage files are cleaned up asynchronously.
 
 ## Generation Statuses
 
