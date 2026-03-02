@@ -751,8 +751,8 @@
     "/v1/generate/regenerate-post": {
       "post": {
         "tags": ["Generation"],
-        "summary": "Regenerate entire post",
-        "description": "Soft-delete all existing media items for a generated post and re-trigger generation from scratch. Debits balance for the full cost again.",
+        "summary": "Regenerate post",
+        "description": "Regenerate a generated post. By default, soft-deletes all existing media items and re-triggers generation from scratch. When `failed_only` is true, retries only failed media items without touching completed ones or the caption.",
         "operationId": "regeneratePost",
         "requestBody": {
           "required": true,
@@ -762,7 +762,12 @@
                 "type": "object",
                 "required": ["generated_post_id"],
                 "properties": {
-                  "generated_post_id": { "type": "string", "format": "uuid" }
+                  "generated_post_id": { "type": "string", "format": "uuid" },
+                  "failed_only": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "When true, retry only failed media items instead of regenerating the entire post."
+                  }
                 }
               }
             }
@@ -770,14 +775,53 @@
         },
         "responses": {
           "202": {
-            "description": "Regeneration started",
+            "description": "Regeneration started. When `failed_only` is true, the response includes `retried_items` and `total_cost_cents`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "description": "Full regeneration response",
+                      "properties": {
+                        "status": { "type": "string" },
+                        "generated_post_id": { "type": "string" }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "description": "Failed-only retry response",
+                      "properties": {
+                        "status": { "type": "string" },
+                        "generated_post_id": { "type": "string" },
+                        "retried_items": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "original_item_id": { "type": "string", "format": "uuid" },
+                              "new_item_id": { "type": "string", "format": "uuid" },
+                              "media_type": { "type": "string", "enum": ["image", "video"] },
+                              "status": { "type": "string", "enum": ["pending"] }
+                            }
+                          }
+                        },
+                        "total_cost_cents": { "type": "integer" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "No failed items to retry (only returned when `failed_only` is true)",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string" },
-                    "generated_post_id": { "type": "string" }
+                    "error": { "type": "string" }
                   }
                 }
               }

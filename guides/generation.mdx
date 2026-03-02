@@ -136,6 +136,40 @@ curl -X POST https://reelmirror.com/api/v1/generate/media-item \
 
 This creates a new version of the media item. Poll the item ID for the updated result.
 
+### Retry failed items only
+
+When a post partially fails (some items completed, some failed), you can retry only the failed items instead of regenerating the entire post. This preserves completed items and skips re-generating the caption:
+
+```bash
+curl -X POST https://reelmirror.com/api/v1/generate/regenerate-post \
+  -H "Authorization: Bearer rm_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "generated_post_id": "GENERATED_POST_ID",
+    "failed_only": true
+  }'
+```
+
+Response (HTTP 202):
+
+```json
+{
+  "status": "started",
+  "generated_post_id": "uuid",
+  "retried_items": [
+    {
+      "original_item_id": "uuid-of-failed-item",
+      "new_item_id": "uuid-of-new-pending-item",
+      "media_type": "video",
+      "status": "pending"
+    }
+  ],
+  "total_cost_cents": 25
+}
+```
+
+Returns HTTP 422 if there are no failed items to retry. When `failed_only` is omitted or `false`, the endpoint behaves as a full regeneration (see above).
+
 ## Voice Conversion
 
 Add voice conversion to a completed video:
