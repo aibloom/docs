@@ -73,7 +73,7 @@ JWT users automatically have all scopes — no scope restrictions apply.
 
 ## Scopes
 
-API keys can be restricted to specific scopes. If no scopes are specified when creating a key, all scopes except `billing:read` and `billing:write` are granted by default. Billing scopes must be explicitly requested.
+API keys can be restricted to specific scopes. If no scopes are specified when creating a key, all scopes except `billing:read`, `billing:write`, `feedback:read`, and `feedback:write` are granted by default. Billing and feedback scopes must be explicitly requested.
 
 | Scope | Description |
 |-------|-------------|
@@ -107,14 +107,20 @@ API keys can be restricted to specific scopes. If no scopes are specified when c
 | `/v1/personas/:id/source-posts` | GET | `content:read` |
 | `/v1/personas/:id/generated-posts` | GET | `content:read` |
 | `/v1/generate` | POST | `content:write` |
+| `/v1/generate/media-item` | POST | `content:write` |
+| `/v1/generate/voice-convert` | POST | `content:write` |
+| `/v1/generate/regenerate-post` | POST | `content:write` |
 | `/v1/clone-url` | POST | `content:write` |
 | `/v1/generate/toggle-public` | POST | `content:write` |
+| `/v1/generated-posts/:id` | DELETE | `content:write` |
+| `/v1/generated-media-items/:id` | DELETE | `content:write` |
 | `/v1/sync-jobs/:id` | GET | `content:read` |
 | `/v1/generated-posts/:id` | GET | `content:read` |
 | `/v1/generated-media-items/:id` | GET | `content:read` |
 | `/v1/billing/balance` | GET | `billing:read` |
 | `/v1/billing/balance` | PATCH | `billing:write` |
 | `/v1/billing/topup` | POST | `billing:write` |
+| `/v1/billing/setup-intent` | POST | `billing:write` |
 | `/v1/billing/transactions` | GET | `billing:read` |
 | `/v1/publishing/accounts` | GET | `publishing:read` |
 | `/v1/publishing/accounts/connect` | GET | `publishing:write` |
@@ -142,6 +148,7 @@ API keys can be restricted to specific scopes. If no scopes are specified when c
 | `/v1/feedback` | POST | `feedback:write` |
 | `/v1/feedback/{id}` | GET | `feedback:read` |
 | `/v1/feedback/{id}/responses` | POST | `feedback:write` |
+| `/v1/auth/signup` | POST | None (public) |
 
 <Warning>
   **`/v1/publishing/accounts/connect` requires a browser.** The `authUrl` returned must be opened in a browser to complete the OAuth flow. The provider redirects to `/api/internal/publishing/accounts/callback` — this is an HTML redirect, not a JSON callback. API clients (curl, scripts) cannot complete this flow. Connect accounts once via the dashboard; all publishing operations are fully automatable thereafter.

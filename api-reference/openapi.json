@@ -687,7 +687,7 @@
                     "items": {
                       "type": "string"
                     },
-                    "description": "Permission scopes. Defaults to all except billing:read."
+                    "description": "Permission scopes. Defaults to all except billing:read, billing:write, feedback:read, and feedback:write."
                   }
                 }
               }
@@ -2511,6 +2511,25 @@
         "summary": "List connected accounts",
         "description": "List all publishing accounts (Instagram, TikTok) connected to your profile.",
         "operationId": "listPublishingAccounts",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Connected publishing accounts",
@@ -2519,11 +2538,15 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "accounts": {
+                    "data": {
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/ConnectedAccount"
                       }
+                    },
+                    "count": {
+                      "type": "integer",
+                      "description": "Total number of connected accounts"
                     }
                   }
                 }
@@ -2613,6 +2636,25 @@
         "summary": "List outgoing posts",
         "description": "List all outgoing posts for your account, including media items and delivery statuses.",
         "operationId": "listOutgoingPosts",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "List of outgoing posts",
@@ -2621,11 +2663,15 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "posts": {
+                    "data": {
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/OutgoingPost"
                       }
+                    },
+                    "count": {
+                      "type": "integer",
+                      "description": "Total number of outgoing posts"
                     }
                   }
                 }

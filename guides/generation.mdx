@@ -74,14 +74,12 @@ Response (HTTP 202):
 
 ```json
 {
-  "generated_post_id": "uuid",
-  "media_items": [
-    {"id": "uuid", "media_type": "image", "status": "pending"},
-    {"id": "uuid", "media_type": "video", "status": "pending"}
-  ],
-  "total_cost_cents": 25
+  "status": "started",
+  "generated_post_id": "uuid"
 }
 ```
+
+Generation is asynchronous. Poll `GET /v1/generated-posts/{generated_post_id}` (Step 4) to retrieve media items and their statuses once processing completes.
 
 ### Step 4: Poll for results
 
@@ -197,7 +195,7 @@ curl -X POST https://reelmirror.com/api/v1/generate/toggle-public \
 ```
 
 <Note>
-  Once a post is made public, it cannot be made private again for 20 days.
+  Once a **discounted** item is made public, it cannot be made private again for 20 days.
 </Note>
 
 ## Deleting Generated Content
