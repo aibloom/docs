@@ -1007,6 +1007,98 @@
             }
           }
         }
+      },
+      "patch": {
+        "tags": ["Billing"],
+        "summary": "Update auto-reload settings",
+        "description": "Configure auto-reload settings. Requires `billing:write` scope.\n\nIf `auto_reload: true` is requested and no payment method is saved, a Stripe Checkout setup session is returned (`setup_url`) so the user can add a card — `auto_reload` is **not** saved as `true` in this case.",
+        "operationId": "updateAutoReload",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "auto_reload": { "type": "boolean", "description": "Enable or disable automatic balance reload" },
+                  "reload_threshold_cents": { "type": "integer", "description": "Balance level (in cents) that triggers an auto-reload" },
+                  "reload_amount_cents": { "type": "integer", "description": "Amount (in cents) to reload when the threshold is hit" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated balance settings, or a Stripe setup URL when no payment method is on file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": { "data": { "$ref": "#/components/schemas/Balance" } }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "auto_reload": { "type": "boolean", "enum": [false] },
+                        "setup_url": { "type": "string", "description": "Stripe Checkout URL to save a payment method" }
+                      },
+                      "required": ["auto_reload", "setup_url"]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error (e.g., threshold/amount missing when enabling auto_reload)",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          }
+        }
+      }
+    },
+    "/v1/billing/topup": {
+      "post": {
+        "tags": ["Billing"],
+        "summary": "Create top-up checkout session",
+        "description": "Create a Stripe Checkout session to add credits to your balance. Requires `billing:write` scope.",
+        "operationId": "createTopup",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["amount_cents"],
+                "properties": {
+                  "amount_cents": { "type": "integer", "description": "Amount in cents to top up. Must be one of the supported values." }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Stripe Checkout URL to complete payment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": { "type": "string", "description": "Stripe Checkout URL" }
+                  },
+                  "required": ["url"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid amount",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          }
+        }
       }
     },
     "/v1/billing/transactions": {
@@ -1110,6 +1202,124 @@
                 "schema": { "$ref": "#/components/schemas/Error" }
               }
             }
+          }
+        }
+      }
+    },
+    "/v1/publishing/accounts/connect": {
+      "get": {
+        "tags": ["Publishing"],
+        "summary": "Get OAuth connect URL",
+        "description": "Generate an OAuth URL to connect a new (or reconnect an existing) social account. Requires `publishing:write` scope.\n\nThe OAuth provider will redirect the user's browser to `/api/internal/publishing/accounts/callback` after authorization — this is not a JSON callback.",
+        "operationId": "getPublishingConnectUrl",
+        "parameters": [
+          {
+            "name": "platform",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "enum": ["instagram", "tiktok"] },
+            "description": "Social platform to connect"
+          },
+          {
+            "name": "accountId",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "format": "uuid" },
+            "description": "ID of an existing connected account to reconnect. Omit for a new connection."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OAuth authorization URL",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "authUrl": { "type": "string", "description": "Redirect the user to this URL to authorize the connection" }
+                  },
+                  "required": ["authUrl"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing platform or name not set",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "402": {
+            "description": "No available slot for a new connection",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          }
+        }
+      }
+    },
+    "/v1/publishing/accounts/slots": {
+      "get": {
+        "tags": ["Publishing"],
+        "summary": "Get account slots",
+        "description": "Return the number of purchased, used, and available account slots. Requires `publishing:read` scope.",
+        "operationId": "getPublishingSlots",
+        "responses": {
+          "200": {
+            "description": "Slot allocation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "purchased": { "type": "integer" },
+                    "used": { "type": "integer" },
+                    "available": { "type": "integer" },
+                    "subscriptionId": { "type": "string", "nullable": true }
+                  },
+                  "required": ["purchased", "used", "available", "subscriptionId"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Publishing"],
+        "summary": "Purchase account slots",
+        "description": "Set the total number of purchased account slots. Creates, updates, or cancels the Stripe subscription accordingly. Returns a `checkoutUrl` when no payment method is on file. Requires `publishing:write` scope.",
+        "operationId": "purchasePublishingSlots",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["slots"],
+                "properties": {
+                  "slots": { "type": "integer", "minimum": 0, "description": "Total number of paid slots to set" },
+                  "returnUrl": { "type": "string", "description": "Path to redirect to after Stripe Checkout (used when no card is on file)" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated slot allocation, or a Stripe Checkout URL when no payment method is on file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "purchased": { "type": "integer" },
+                    "subscriptionId": { "type": "string", "nullable": true },
+                    "checkoutUrl": { "type": "string", "nullable": true, "description": "Stripe Checkout URL when payment collection is needed" }
+                  },
+                  "required": ["purchased", "subscriptionId"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid slots value or cannot reduce below active usage",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
           }
         }
       }

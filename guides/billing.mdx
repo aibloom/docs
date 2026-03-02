@@ -74,11 +74,92 @@ Response:
 
 Positive amounts are credits (deposits, refunds). Negative amounts are debits (generation, sync, voice conversion).
 
+## Topping Up
+
+Create a Stripe Checkout session to add credits:
+
+```bash
+curl -X POST https://reelmirror.com/api/v1/billing/topup \
+  -H "Authorization: Bearer rm_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"amount_cents": 1000}'
+```
+
+Response:
+
+```json
+{
+  "url": "https://checkout.stripe.com/..."
+}
+```
+
+Redirect the user to `url` to complete payment. Requires the `billing:write` scope.
+
 ## Auto-Reload
 
-You can configure auto-reload from the [dashboard](https://reelmirror.com/dashboard) to automatically top up your balance via Stripe when it falls below a threshold. This ensures uninterrupted API usage.
+Auto-reload automatically tops up your balance via Stripe when it falls below a threshold. This ensures uninterrupted API usage.
 
 When auto-reload is enabled and your balance drops below the threshold during an API operation, a reload is triggered automatically in the background.
+
+### Configuring auto-reload via API
+
+Use `PATCH /v1/billing/balance` to configure auto-reload settings. Requires the `billing:write` scope.
+
+**Enable auto-reload** (card already on file):
+
+```bash
+curl -X PATCH https://reelmirror.com/api/v1/billing/balance \
+  -H "Authorization: Bearer rm_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "auto_reload": true,
+    "reload_threshold_cents": 500,
+    "reload_amount_cents": 2000
+  }'
+```
+
+Response (card on file):
+
+```json
+{
+  "data": {
+    "balance_cents": 1050,
+    "balance_dollars": "10.50",
+    "auto_reload": true,
+    "reload_threshold_cents": 500,
+    "reload_amount_cents": 2000
+  }
+}
+```
+
+**Enable auto-reload** (no card on file):
+
+If no payment method is saved, the API returns a Stripe Checkout setup URL instead of enabling `auto_reload`. Redirect the user to `setup_url` to save a card, then re-request:
+
+```json
+{
+  "auto_reload": false,
+  "setup_url": "https://checkout.stripe.com/..."
+}
+```
+
+**Disable auto-reload:**
+
+```bash
+curl -X PATCH https://reelmirror.com/api/v1/billing/balance \
+  -H "Authorization: Bearer rm_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"auto_reload": false}'
+```
+
+**Update thresholds only** (without changing `auto_reload`):
+
+```bash
+curl -X PATCH https://reelmirror.com/api/v1/billing/balance \
+  -H "Authorization: Bearer rm_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"reload_threshold_cents": 1000, "reload_amount_cents": 5000}'
+```
 
 ## Insufficient Balance
 

@@ -73,7 +73,7 @@ JWT users automatically have all scopes — no scope restrictions apply.
 
 ## Scopes
 
-API keys can be restricted to specific scopes. If no scopes are specified when creating a key, all scopes except `billing:read` are granted by default.
+API keys can be restricted to specific scopes. If no scopes are specified when creating a key, all scopes except `billing:read` and `billing:write` are granted by default. Billing scopes must be explicitly requested.
 
 | Scope | Description |
 |-------|-------------|
@@ -85,6 +85,7 @@ API keys can be restricted to specific scopes. If no scopes are specified when c
 | `content:write` | Generate content, clone URLs, toggle public |
 | `sync:write` | Trigger content sync |
 | `billing:read` | View balance and transactions |
+| `billing:write` | Top up balance and configure auto-reload |
 | `uploads:write` | Upload avatar images and voice samples |
 
 ### Scope requirements by endpoint
@@ -106,7 +107,13 @@ API keys can be restricted to specific scopes. If no scopes are specified when c
 | `/v1/generated-posts/:id` | GET | `content:read` |
 | `/v1/generated-media-items/:id` | GET | `content:read` |
 | `/v1/billing/balance` | GET | `billing:read` |
+| `/v1/billing/balance` | PATCH | `billing:write` |
+| `/v1/billing/topup` | POST | `billing:write` |
 | `/v1/billing/transactions` | GET | `billing:read` |
+| `/v1/publishing/accounts` | GET | `publishing:read` |
+| `/v1/publishing/accounts/connect` | GET | `publishing:write` |
+| `/v1/publishing/accounts/slots` | GET | `publishing:read` |
+| `/v1/publishing/accounts/slots` | POST | `publishing:write` |
 | `/v1/uploads` | POST | `uploads:write` |
 
 ## Rate Limiting
