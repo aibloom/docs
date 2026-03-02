@@ -91,6 +91,8 @@ API keys can be restricted to specific scopes. If no scopes are specified when c
 | `profile:read` | Read your profile |
 | `profile:write` | Update your profile |
 | `uploads:write` | Upload avatar images and voice samples |
+| `feedback:read` | Read your feedback tickets and responses |
+| `feedback:write` | Submit feedback and post replies |
 
 ### Scope requirements by endpoint
 
@@ -136,6 +138,10 @@ API keys can be restricted to specific scopes. If no scopes are specified when c
 | `/v1/profile` | GET | `profile:read` |
 | `/v1/profile` | PATCH | `profile:write` |
 | `/v1/uploads` | POST | `uploads:write` |
+| `/v1/feedback` | GET | `feedback:read` |
+| `/v1/feedback` | POST | `feedback:write` |
+| `/v1/feedback/{id}` | GET | `feedback:read` |
+| `/v1/feedback/{id}/responses` | POST | `feedback:write` |
 
 <Warning>
   **`/v1/publishing/accounts/connect` requires a browser.** The `authUrl` returned must be opened in a browser to complete the OAuth flow. The provider redirects to `/api/internal/publishing/accounts/callback` — this is an HTML redirect, not a JSON callback. API clients (curl, scripts) cannot complete this flow. Connect accounts once via the dashboard; all publishing operations are fully automatable thereafter.
