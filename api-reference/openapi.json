@@ -2043,11 +2043,15 @@
                   },
                   "reload_threshold_cents": {
                     "type": "integer",
-                    "description": "Balance level (in cents) that triggers an auto-reload"
+                    "minimum": 0,
+                    "maximum": 5000,
+                    "description": "Balance level (in cents) that triggers an auto-reload. Min 0, max 5000."
                   },
                   "reload_amount_cents": {
                     "type": "integer",
-                    "description": "Amount (in cents) to reload when the threshold is hit"
+                    "minimum": 100,
+                    "maximum": 5000,
+                    "description": "Amount (in cents) to reload when the threshold is hit. Min 100 ($1), max 5000 ($50)."
                   }
                 }
               }

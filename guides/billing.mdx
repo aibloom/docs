@@ -107,7 +107,8 @@ When auto-reload is enabled and your balance drops below the threshold during an
 
 Use `PATCH /v1/billing/balance` to configure auto-reload settings. Requires the `billing:write` scope.
 
-**Enable auto-reload** (card already on file):
+**Enable auto-reload** (card already on file).
+`reload_amount_cents` must be between 100 ($1) and 5000 ($50). `reload_threshold_cents` must be between 0 and 5000 ($50):
 
 ```bash
 curl -X PATCH https://reelmirror.com/api/v1/billing/balance \
