@@ -160,6 +160,9 @@
     { "name": "Sync", "description": "Sync content from sources" },
     { "name": "Generation", "description": "Generate AI content" },
     { "name": "Content", "description": "Browse synced and generated content" },
+    { "name": "Review", "description": "Approve, reject, or compose generated posts" },
+    { "name": "Publishing", "description": "Manage outgoing posts and connected publishing accounts" },
+    { "name": "Profile", "description": "Manage your account profile" },
     { "name": "Billing", "description": "Balance and transaction history" },
     { "name": "Uploads", "description": "Upload files" }
   ],
@@ -1025,6 +1028,607 @@
                   "properties": {
                     "data": { "type": "array", "items": { "$ref": "#/components/schemas/Transaction" } },
                     "count": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/profile": {
+      "get": {
+        "tags": ["Profile"],
+        "summary": "Get profile",
+        "operationId": "getProfile",
+        "responses": {
+          "200": {
+            "description": "Your profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "string", "format": "uuid" },
+                        "name": { "type": "string" },
+                        "email": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": ["Profile"],
+        "summary": "Update profile",
+        "operationId": "updateProfile",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "string", "format": "uuid" },
+                        "name": { "type": "string" },
+                        "email": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Name already taken",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/publishing/accounts": {
+      "get": {
+        "tags": ["Publishing"],
+        "summary": "List connected accounts",
+        "description": "List all publishing accounts (Instagram, TikTok) connected to your profile.",
+        "operationId": "listPublishingAccounts",
+        "responses": {
+          "200": {
+            "description": "Connected publishing accounts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "accounts": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "string", "format": "uuid" },
+                          "platform": { "type": "string", "enum": ["instagram", "tiktok"] },
+                          "username": { "type": "string" },
+                          "status": { "type": "string" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/publishing/accounts/{id}": {
+      "get": {
+        "tags": ["Publishing"],
+        "summary": "Get account health",
+        "description": "Check the health/status of a connected publishing account.",
+        "operationId": "getPublishingAccountHealth",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account health",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "health": { "type": "object" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Publishing"],
+        "summary": "Disconnect account",
+        "description": "Disconnect a publishing account from your profile.",
+        "operationId": "disconnectPublishingAccount",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account disconnected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/publishing/posts": {
+      "get": {
+        "tags": ["Publishing"],
+        "summary": "List outgoing posts",
+        "description": "List all outgoing posts for your account, including media items and delivery statuses.",
+        "operationId": "listOutgoingPosts",
+        "responses": {
+          "200": {
+            "description": "List of outgoing posts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "posts": {
+                      "type": "array",
+                      "items": { "type": "object" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Publishing"],
+        "summary": "Create outgoing post",
+        "description": "Create a draft outgoing post with media items and target publishing accounts.",
+        "operationId": "createOutgoingPost",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["items"],
+                "properties": {
+                  "persona_id": { "type": "string", "format": "uuid" },
+                  "caption": { "type": "string" },
+                  "items": {
+                    "type": "array",
+                    "description": "Media items to include in the post",
+                    "items": {
+                      "type": "object",
+                      "required": ["generated_media_item_id", "position"],
+                      "properties": {
+                        "generated_media_item_id": { "type": "string", "format": "uuid" },
+                        "position": { "type": "integer" },
+                        "use_voice_converted": { "type": "boolean" }
+                      }
+                    }
+                  },
+                  "target_account_ids": {
+                    "type": "array",
+                    "items": { "type": "string", "format": "uuid" }
+                  },
+                  "platform_settings": { "type": "object" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Outgoing post created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "post": { "type": "object" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/publishing/posts/{id}": {
+      "get": {
+        "tags": ["Publishing"],
+        "summary": "Get outgoing post",
+        "operationId": "getOutgoingPost",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Outgoing post with items and deliveries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "post": { "type": "object" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": ["Publishing"],
+        "summary": "Update outgoing post",
+        "description": "Update caption, platform settings, or other mutable fields on a draft post.",
+        "operationId": "updateOutgoingPost",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "caption": { "type": "string" },
+                  "platform_settings": { "type": "object" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Post updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "post": { "type": "object" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Publishing"],
+        "summary": "Delete outgoing post",
+        "operationId": "deleteOutgoingPost",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Post deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/publishing/posts/{id}/publish": {
+      "post": {
+        "tags": ["Publishing"],
+        "summary": "Publish now",
+        "description": "Immediately publish an outgoing post to all configured accounts.",
+        "operationId": "publishOutgoingPost",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Publishing started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "publishing" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/publishing/posts/{id}/schedule": {
+      "post": {
+        "tags": ["Publishing"],
+        "summary": "Schedule post",
+        "description": "Schedule an outgoing post for a future time.",
+        "operationId": "scheduleOutgoingPost",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["scheduled_for"],
+                "properties": {
+                  "scheduled_for": { "type": "string", "format": "date-time", "description": "ISO 8601 datetime to publish at" },
+                  "timezone": { "type": "string", "default": "UTC", "description": "IANA timezone name (e.g. America/New_York)" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Post scheduled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "scheduled" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/publishing/posts/{id}/retry": {
+      "post": {
+        "tags": ["Publishing"],
+        "summary": "Retry publish",
+        "description": "Retry publishing a post that previously failed.",
+        "operationId": "retryOutgoingPost",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Retry started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "publishing" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/publishing/posts/{id}/cancel": {
+      "post": {
+        "tags": ["Publishing"],
+        "summary": "Cancel scheduled post",
+        "description": "Cancel a scheduled outgoing post before it is published.",
+        "operationId": "cancelOutgoingPost",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Post cancelled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "cancelled" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/publishing/caption": {
+      "post": {
+        "tags": ["Publishing"],
+        "summary": "Generate caption",
+        "description": "AI-generate a publishing caption from one or more generated media items, matching the persona's writing style.",
+        "operationId": "generateCaption",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["generated_media_item_ids"],
+                "properties": {
+                  "generated_media_item_ids": {
+                    "type": "array",
+                    "items": { "type": "string", "format": "uuid" }
+                  },
+                  "persona_id": { "type": "string", "format": "uuid" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Generated caption",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "caption": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/generated-posts/{post_id}/approve": {
+      "post": {
+        "tags": ["Review"],
+        "summary": "Approve generated post",
+        "description": "Approve a generated post pending review. Creates an outgoing post and immediately publishes it to the persona's connected accounts.",
+        "operationId": "approveGeneratedPost",
+        "parameters": [
+          { "name": "post_id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Post approved and publishing started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "publishing" },
+                    "outgoing_post_id": { "type": "string", "format": "uuid" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Post not in a publishable state",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/generated-posts/{post_id}/reject": {
+      "post": {
+        "tags": ["Review"],
+        "summary": "Reject generated post",
+        "description": "Reject a generated post pending review. Sets review_status to rejected.",
+        "operationId": "rejectGeneratedPost",
+        "parameters": [
+          { "name": "post_id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Post rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "rejected" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/generated-posts/{post_id}/send-to-compose": {
+      "post": {
+        "tags": ["Review"],
+        "summary": "Send to compose",
+        "description": "Approve a generated post and create a draft outgoing post for manual editing in the composer, without publishing immediately.",
+        "operationId": "sendGeneratedPostToCompose",
+        "parameters": [
+          { "name": "post_id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Draft outgoing post created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "outgoing_post_id": { "type": "string", "format": "uuid" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/generated-media-items/{item_id}/reject": {
+      "post": {
+        "tags": ["Review"],
+        "summary": "Reject media item",
+        "description": "Reject a single generated media item within a post pending review. If all items in the post are rejected, the parent post is auto-rejected.",
+        "operationId": "rejectGeneratedMediaItem",
+        "parameters": [
+          { "name": "item_id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Media item rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "rejected" },
+                    "post_auto_rejected": { "type": "boolean", "description": "True if all items were rejected and the parent post was auto-rejected" }
                   }
                 }
               }
