@@ -1,20 +1,161 @@
 ---
-title: "Webhooks"
-description: "Get notified when events happen"
+title: "Async Operations & Polling"
+description: "How to poll for status on sync jobs, generation, and publishing"
 ---
 
-## Coming Soon
+## Coming Soon: Webhooks
 
 Webhook support is planned for a future release. Webhooks will allow you to receive real-time notifications when:
 
 - A sync job completes or fails
 - Content generation finishes
 - Voice conversion completes
+- A publishing delivery succeeds or fails
 
-In the meantime, use polling to check the status of async operations:
+In the meantime, use polling as described below.
 
-- **Sync jobs**: `GET /v1/sync-jobs/{job_id}`
-- **Generated posts**: `GET /v1/generated-posts/{post_id}`
-- **Generated media items**: `GET /v1/generated-media-items/{item_id}`
+---
 
-We recommend polling every 5-10 seconds for generation jobs and every 10-30 seconds for sync jobs.
+## Polling Patterns
+
+All async operations follow the same pattern: submit a request, receive a job/resource ID, then poll until a terminal state is reached.
+
+### Sync Jobs
+
+```bash
+# Submit
+curl -X POST "https://reelmirror.com/api/v1/personas/{persona_id}/sync" \
+  -H "Authorization: Bearer rm_your_key"
+# Returns: {"job_ids": ["uuid1", ...], ...}
+
+# Poll each job
+curl "https://reelmirror.com/api/v1/sync-jobs/{job_id}" \
+  -H "Authorization: Bearer rm_your_key"
+```
+
+**Terminal states:** `completed`, `failed`, `skipped`
+
+**Expected time:** 30 seconds – 5 minutes (varies by source post count)
+
+| Status | Terminal | Meaning |
+|--------|----------|---------|
+| `pending` | No | Queued, not started |
+| `running` | No | In progress |
+| `completed` | Yes | Sync succeeded |
+| `failed` | Yes | Sync failed — check `error_message` |
+| `skipped` | Yes | Sync skipped (e.g., ran within last 15 minutes) |
+
+### Content Generation
+
+```bash
+# Submit
+curl -X POST "https://reelmirror.com/api/v1/generate" \
+  -H "Authorization: Bearer rm_your_key" \
+  -H "Content-Type: application/json" \
+  -d '{"source_post_id": "uuid", "persona_id": "uuid"}'
+# Returns: {"generated_post_id": "uuid"}
+
+# Poll the post — check that all media_items are completed
+curl "https://reelmirror.com/api/v1/generated-posts/{post_id}" \
+  -H "Authorization: Bearer rm_your_key"
+```
+
+A generated post is ready when:
+- `post.status === "completed"`, **and**
+- Every `media_items[].status === "completed"`
+
+Individual items can be polled separately at `GET /v1/generated-media-items/{item_id}`.
+
+**Expected time:**
+- Image generation: 20 – 90 seconds per item
+- Video generation: 60 – 300 seconds per item
+- Voice conversion: 30 – 120 seconds
+
+### Publishing Delivery
+
+```bash
+# Poll outgoing post
+curl "https://reelmirror.com/api/v1/publishing/posts/{outgoing_post_id}" \
+  -H "Authorization: Bearer rm_your_key"
+```
+
+Check `post.deliveries[]` — each delivery corresponds to one publishing account.
+
+**Terminal states:** `published`, `failed`
+
+**Expected time:** 10 – 60 seconds
+
+---
+
+## Recommended Polling Intervals
+
+| Operation | Poll interval | Timeout |
+|-----------|---------------|---------|
+| Sync job | 15 seconds | 10 minutes |
+| Image generation | 10 seconds | 5 minutes |
+| Video generation | 15 seconds | 10 minutes |
+| Voice conversion | 10 seconds | 5 minutes |
+| Publishing delivery | 10 seconds | 3 minutes |
+
+---
+
+## Backoff Pattern
+
+Use exponential backoff to avoid hammering the API during long operations:
+
+```python
+import time
+
+def poll(fetch_fn, is_terminal_fn, initial_delay=5, max_delay=60, max_attempts=60):
+    """
+    Poll until is_terminal_fn(result) is True.
+    Starts at initial_delay seconds, doubles each attempt, caps at max_delay.
+    """
+    delay = initial_delay
+    for attempt in range(max_attempts):
+        result = fetch_fn()
+        if is_terminal_fn(result):
+            return result
+        time.sleep(delay)
+        delay = min(delay * 1.5, max_delay)
+    raise TimeoutError(f"Polling timed out after {max_attempts} attempts")
+
+# Example usage
+def check_sync_done(job_id):
+    resp = api.get(f"/v1/sync-jobs/{job_id}")
+    return resp["data"]["status"] in ("completed", "failed", "skipped")
+
+result = poll(
+    fetch_fn=lambda: api.get(f"/v1/sync-jobs/{job_id}"),
+    is_terminal_fn=lambda r: r["data"]["status"] in ("completed", "failed", "skipped"),
+)
+```
+
+---
+
+## JavaScript / TypeScript Example
+
+```typescript
+async function pollUntilDone<T>(
+  fetch: () => Promise<T>,
+  isTerminal: (result: T) => boolean,
+  options = { initialDelay: 5000, maxDelay: 60000, maxAttempts: 60 }
+): Promise<T> {
+  let delay = options.initialDelay;
+  for (let i = 0; i < options.maxAttempts; i++) {
+    const result = await fetch();
+    if (isTerminal(result)) return result;
+    await new Promise((r) => setTimeout(r, delay));
+    delay = Math.min(delay * 1.5, options.maxDelay);
+  }
+  throw new Error("Polling timed out");
+}
+
+// Example: wait for generation to complete
+const post = await pollUntilDone(
+  () => api.get(`/v1/generated-posts/${postId}`).then((r) => r.data),
+  (post) =>
+    post.status === "completed" &&
+    post.media_items.every((item) => item.status === "completed")
+);
+```

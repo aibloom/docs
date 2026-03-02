@@ -74,6 +74,11 @@
           "persona_id": { "type": "string", "format": "uuid" },
           "source_post_id": { "type": "string", "format": "uuid" },
           "status": { "type": "string", "enum": ["pending", "generating", "completed", "failed"] },
+          "review_status": {
+            "type": "string",
+            "enum": ["pending_review", "approved", "rejected", "published"],
+            "description": "Review lifecycle state. `pending_review` = awaiting action; `approved` = approved but not yet published; `rejected` = rejected; `published` = published to at least one account."
+          },
           "caption": { "type": "string", "nullable": true },
           "media_items": {
             "type": "array",
@@ -110,6 +115,62 @@
             }
           },
           "estimated_cost_cents": { "type": "integer" },
+          "error_message": { "type": "string", "nullable": true, "description": "Error detail when status is `failed`" },
+          "completed_at": { "type": "string", "format": "date-time", "nullable": true, "description": "When the job reached `completed` or `skipped` status" },
+          "failed_at": { "type": "string", "format": "date-time", "nullable": true, "description": "When the job reached `failed` status" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "ConnectedAccount": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "platform": { "type": "string", "enum": ["instagram", "tiktok"] },
+          "username": { "type": "string" },
+          "status": { "type": "string", "enum": ["active", "expired", "error"], "description": "`active` = token valid; `expired` = token expired, reconnect needed; `error` = connection error" },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "OutgoingPostDelivery": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "connected_account_id": { "type": "string", "format": "uuid" },
+          "platform": { "type": "string", "enum": ["instagram", "tiktok"] },
+          "username": { "type": "string" },
+          "status": { "type": "string", "enum": ["pending", "publishing", "published", "failed"], "description": "Terminal states: `published` (success) and `failed` (permanent error). Poll until terminal." },
+          "platform_post_id": { "type": "string", "nullable": true, "description": "Platform-assigned post ID after successful publish" },
+          "error_message": { "type": "string", "nullable": true, "description": "Error detail when status is `failed`" },
+          "published_at": { "type": "string", "format": "date-time", "nullable": true }
+        }
+      },
+      "OutgoingPost": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "persona_id": { "type": "string", "format": "uuid", "nullable": true },
+          "caption": { "type": "string", "nullable": true },
+          "status": { "type": "string", "enum": ["draft", "scheduled", "publishing", "published", "failed", "cancelled"] },
+          "scheduled_for": { "type": "string", "format": "date-time", "nullable": true },
+          "platform_settings": { "type": "object", "nullable": true },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "string", "format": "uuid" },
+                "generated_media_item_id": { "type": "string", "format": "uuid" },
+                "position": { "type": "integer" },
+                "use_voice_converted": { "type": "boolean" }
+              }
+            }
+          },
+          "deliveries": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/OutgoingPostDelivery" },
+            "description": "One delivery per target publishing account. Check all deliveries to determine overall publish outcome."
+          },
           "created_at": { "type": "string", "format": "date-time" },
           "updated_at": { "type": "string", "format": "date-time" }
         }
@@ -1340,15 +1401,7 @@
                   "properties": {
                     "accounts": {
                       "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": { "type": "string", "format": "uuid" },
-                          "platform": { "type": "string", "enum": ["instagram", "tiktok"] },
-                          "username": { "type": "string" },
-                          "status": { "type": "string" }
-                        }
-                      }
+                      "items": { "$ref": "#/components/schemas/ConnectedAccount" }
                     }
                   }
                 }
@@ -1424,7 +1477,7 @@
                   "properties": {
                     "posts": {
                       "type": "array",
-                      "items": { "type": "object" }
+                      "items": { "$ref": "#/components/schemas/OutgoingPost" }
                     }
                   }
                 }
@@ -1479,7 +1532,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "post": { "type": "object" }
+                    "post": { "$ref": "#/components/schemas/OutgoingPost" }
                   }
                 }
               }
@@ -1504,7 +1557,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "post": { "type": "object" }
+                    "post": { "$ref": "#/components/schemas/OutgoingPost" }
                   }
                 }
               }
@@ -1541,7 +1594,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "post": { "type": "object" }
+                    "post": { "$ref": "#/components/schemas/OutgoingPost" }
                   }
                 }
               }
@@ -1737,7 +1790,7 @@
       "post": {
         "tags": ["Review"],
         "summary": "Approve generated post",
-        "description": "Approve a generated post pending review. Creates an outgoing post and immediately publishes it to the persona's connected accounts.",
+        "description": "Approve a generated post pending review. Creates an outgoing post and immediately publishes it to the persona's connected accounts.\n\n**Requires connected accounts.** The persona must have at least one publishing account connected via `GET /v1/publishing/accounts/connect`. If no accounts are connected, the request returns `400`. Connect accounts once via the dashboard — this step requires a browser OAuth flow.",
         "operationId": "approveGeneratedPost",
         "parameters": [
           { "name": "post_id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }

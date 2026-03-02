@@ -26,7 +26,10 @@
               "guides/authentication",
               "guides/billing",
               "guides/generation",
-              "guides/webhooks"
+              "guides/review-queue",
+              "guides/publishing",
+              "guides/webhooks",
+              "guides/agent-automation"
             ]
           }
         ]

@@ -1,0 +1,260 @@
+---
+title: "Publishing"
+description: "Publish generated content to Instagram and TikTok"
+---
+
+## Overview
+
+Publishing is the final step of the ReelMirror workflow. After generating content and approving it through the review queue, you can publish directly to connected Instagram or TikTok accounts.
+
+Publishing is a **separate system** from content generation. Generated posts must go through a review action before they can be published, and publishing requires at least one connected social account.
+
+---
+
+## Prerequisites: Connected Accounts
+
+<Warning>
+  **Connecting publishing accounts requires a browser.** The OAuth flow cannot be completed via API alone. This is a **one-time, human setup step** — all subsequent publishing operations are fully automatable.
+</Warning>
+
+To connect an account:
+
+1. Call `GET /v1/publishing/accounts/connect?platform=instagram` to get an `authUrl`
+2. **Open the `authUrl` in a browser** — the OAuth provider redirects to a callback URL after authorization
+3. The connected account will appear in `GET /v1/publishing/accounts`
+
+Once an account is connected, bots can use all publishing endpoints without human intervention.
+
+```bash
+# Get an OAuth URL (returns authUrl — must be opened in a browser)
+curl "https://reelmirror.com/api/v1/publishing/accounts/connect?platform=instagram" \
+  -H "Authorization: Bearer rm_your_api_key"
+
+# List connected accounts
+curl "https://reelmirror.com/api/v1/publishing/accounts" \
+  -H "Authorization: Bearer rm_your_api_key"
+```
+
+---
+
+## Account Slots
+
+Each user gets **one free account slot**. Additional slots are $3/month per slot (Stripe subscription).
+
+Check your current allocation:
+
+```bash
+curl "https://reelmirror.com/api/v1/publishing/accounts/slots" \
+  -H "Authorization: Bearer rm_your_api_key"
+```
+
+```json
+{
+  "purchased": 1,
+  "used": 1,
+  "available": 0,
+  "subscriptionId": "sub_xxxxx"
+}
+```
+
+Purchase additional slots (requires payment method on file):
+
+```bash
+curl -X POST "https://reelmirror.com/api/v1/publishing/accounts/slots" \
+  -H "Authorization: Bearer rm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{"slots": 3}'
+```
+
+<Note>
+  If no payment method is on file, the response includes a `checkoutUrl` (Stripe Checkout). Open it in a browser to save a card, then retry the slots request.
+</Note>
+
+---
+
+## Three Publishing Paths
+
+### Path A — Quick Approve and Publish
+
+The fastest path. Calling `/approve` on a generated post creates an outgoing post and immediately publishes it to all of the persona's connected accounts.
+
+```bash
+curl -X POST "https://reelmirror.com/api/v1/generated-posts/{post_id}/approve" \
+  -H "Authorization: Bearer rm_your_api_key"
+```
+
+```json
+{
+  "status": "publishing",
+  "outgoing_post_id": "uuid"
+}
+```
+
+After approval, poll `GET /v1/publishing/posts/{outgoing_post_id}` to check delivery status.
+
+**Requirements:** The persona must have at least one connected publishing account with `status: "active"`. If no accounts are connected, the request returns `400`.
+
+### Path B — Compose Then Publish
+
+Use this when you want to edit the caption or platform settings before publishing.
+
+**Step 1:** Send the generated post to the composer (creates a draft outgoing post without publishing):
+
+```bash
+curl -X POST "https://reelmirror.com/api/v1/generated-posts/{post_id}/send-to-compose" \
+  -H "Authorization: Bearer rm_your_api_key"
+```
+
+```json
+{ "outgoing_post_id": "uuid" }
+```
+
+**Step 2 (optional):** Generate an AI caption:
+
+```bash
+curl -X POST "https://reelmirror.com/api/v1/publishing/caption" \
+  -H "Authorization: Bearer rm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "generated_media_item_ids": ["item_uuid_1", "item_uuid_2"],
+    "persona_id": "persona_uuid"
+  }'
+```
+
+**Step 3:** Update the draft post with your caption:
+
+```bash
+curl -X PATCH "https://reelmirror.com/api/v1/publishing/posts/{outgoing_post_id}" \
+  -H "Authorization: Bearer rm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{"caption": "Your caption here #hashtag"}'
+```
+
+**Step 4:** Publish immediately or schedule:
+
+```bash
+# Publish now
+curl -X POST "https://reelmirror.com/api/v1/publishing/posts/{outgoing_post_id}/publish" \
+  -H "Authorization: Bearer rm_your_api_key"
+
+# Or schedule for a future time
+curl -X POST "https://reelmirror.com/api/v1/publishing/posts/{outgoing_post_id}/schedule" \
+  -H "Authorization: Bearer rm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{"scheduled_for": "2025-06-01T14:00:00Z", "timezone": "America/New_York"}'
+```
+
+### Path C — Create from Scratch
+
+Create a new outgoing post directly, without going through the review queue:
+
+```bash
+curl -X POST "https://reelmirror.com/api/v1/publishing/posts" \
+  -H "Authorization: Bearer rm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "persona_id": "persona_uuid",
+    "caption": "Check out this content!",
+    "items": [
+      {"generated_media_item_id": "item_uuid", "position": 0}
+    ],
+    "target_account_ids": ["account_uuid"]
+  }'
+```
+
+Then publish or schedule as in Path B.
+
+---
+
+## Checking Delivery Status
+
+After publishing, poll `GET /v1/publishing/posts/{id}` and inspect the `deliveries` array. Each entry represents one publishing account.
+
+```bash
+curl "https://reelmirror.com/api/v1/publishing/posts/{id}" \
+  -H "Authorization: Bearer rm_your_api_key"
+```
+
+```json
+{
+  "post": {
+    "id": "uuid",
+    "status": "published",
+    "deliveries": [
+      {
+        "id": "uuid",
+        "platform": "instagram",
+        "username": "my_account",
+        "status": "published",
+        "platform_post_id": "18012345678901234",
+        "published_at": "2025-06-01T14:00:05Z"
+      }
+    ]
+  }
+}
+```
+
+**Delivery `status` values:**
+
+| Status | Terminal | Meaning |
+|--------|----------|---------|
+| `pending` | No | Queued, not yet started |
+| `publishing` | No | In progress |
+| `published` | Yes | Successfully published |
+| `failed` | Yes | Permanent failure — check `error_message` |
+
+Poll every 10–30 seconds. Publishing typically completes in 10–60 seconds. After a terminal state (`published` or `failed`), stop polling.
+
+If a delivery fails, retry with:
+
+```bash
+curl -X POST "https://reelmirror.com/api/v1/publishing/posts/{id}/retry" \
+  -H "Authorization: Bearer rm_your_api_key"
+```
+
+---
+
+## AI Caption Generation
+
+You can generate a caption independently from any generated media items using the persona's writing style:
+
+```bash
+curl -X POST "https://reelmirror.com/api/v1/publishing/caption" \
+  -H "Authorization: Bearer rm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "generated_media_item_ids": ["item_uuid"],
+    "persona_id": "persona_uuid"
+  }'
+```
+
+```json
+{ "caption": "Living for these summer vibes ☀️ #summer #lifestyle" }
+```
+
+This endpoint is synchronous — the caption is returned immediately. The `persona_id` is optional; if omitted, a generic caption is generated.
+
+---
+
+## Cleanup
+
+Cancel a scheduled post before it fires:
+
+```bash
+curl -X POST "https://reelmirror.com/api/v1/publishing/posts/{id}/cancel" \
+  -H "Authorization: Bearer rm_your_api_key"
+```
+
+Delete a draft or failed post:
+
+```bash
+curl -X DELETE "https://reelmirror.com/api/v1/publishing/posts/{id}" \
+  -H "Authorization: Bearer rm_your_api_key"
+```
+
+Disconnect a publishing account:
+
+```bash
+curl -X DELETE "https://reelmirror.com/api/v1/publishing/accounts/{account_id}" \
+  -H "Authorization: Bearer rm_your_api_key"
+```

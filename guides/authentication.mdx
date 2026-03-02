@@ -82,10 +82,14 @@ API keys can be restricted to specific scopes. If no scopes are specified when c
 | `sources:read` | List sources |
 | `sources:write` | Add, remove sources |
 | `content:read` | Read content, poll generation status |
-| `content:write` | Generate content, clone URLs, toggle public |
+| `content:write` | Generate content, clone URLs, toggle public, approve/reject posts |
 | `sync:write` | Trigger content sync |
 | `billing:read` | View balance and transactions |
 | `billing:write` | Top up balance and configure auto-reload |
+| `publishing:read` | List connected accounts, view outgoing posts and slots |
+| `publishing:write` | Connect accounts, create/update/publish outgoing posts |
+| `profile:read` | Read your profile |
+| `profile:write` | Update your profile |
 | `uploads:write` | Upload avatar images and voice samples |
 
 ### Scope requirements by endpoint
@@ -114,7 +118,28 @@ API keys can be restricted to specific scopes. If no scopes are specified when c
 | `/v1/publishing/accounts/connect` | GET | `publishing:write` |
 | `/v1/publishing/accounts/slots` | GET | `publishing:read` |
 | `/v1/publishing/accounts/slots` | POST | `publishing:write` |
+| `/v1/publishing/accounts/{id}` | GET | `publishing:read` |
+| `/v1/publishing/accounts/{id}` | DELETE | `publishing:write` |
+| `/v1/publishing/posts` | GET | `publishing:read` |
+| `/v1/publishing/posts` | POST | `publishing:write` |
+| `/v1/publishing/posts/{id}` | GET | `publishing:read` |
+| `/v1/publishing/posts/{id}` | PATCH, DELETE | `publishing:write` |
+| `/v1/publishing/posts/{id}/publish` | POST | `publishing:write` |
+| `/v1/publishing/posts/{id}/schedule` | POST | `publishing:write` |
+| `/v1/publishing/posts/{id}/retry` | POST | `publishing:write` |
+| `/v1/publishing/posts/{id}/cancel` | POST | `publishing:write` |
+| `/v1/publishing/caption` | POST | `publishing:write` |
+| `/v1/generated-posts/{id}/approve` | POST | `content:write` |
+| `/v1/generated-posts/{id}/reject` | POST | `content:write` |
+| `/v1/generated-posts/{id}/send-to-compose` | POST | `content:write` |
+| `/v1/generated-media-items/{id}/reject` | POST | `content:write` |
+| `/v1/profile` | GET | `profile:read` |
+| `/v1/profile` | PATCH | `profile:write` |
 | `/v1/uploads` | POST | `uploads:write` |
+
+<Warning>
+  **`/v1/publishing/accounts/connect` requires a browser.** The `authUrl` returned must be opened in a browser to complete the OAuth flow. The provider redirects to `/api/internal/publishing/accounts/callback` — this is an HTML redirect, not a JSON callback. API clients (curl, scripts) cannot complete this flow. Connect accounts once via the dashboard; all publishing operations are fully automatable thereafter.
+</Warning>
 
 ## Rate Limiting
 

@@ -1,0 +1,206 @@
+---
+title: "Agent Automation"
+description: "What autonomous bots can do with the ReelMirror API"
+---
+
+## Overview
+
+This guide is written for autonomous agents (bots, LLMs, automated pipelines) using the ReelMirror API. It answers two questions: what can a bot do without human intervention, and what requires a human to set up first?
+
+---
+
+## What a Bot Can Do
+
+### One-time human setup required
+
+| Action | Why | How to unblock |
+|--------|-----|----------------|
+| Connect publishing accounts | OAuth browser redirect | Set up once in the dashboard |
+| Fund the account | `/v1/billing/topup` returns a Stripe URL | Top up via the dashboard |
+| Enable auto-reload (no card on file) | `PATCH /v1/billing/balance` returns a Stripe setup URL | Add card via the dashboard |
+| Purchase account slots (no card on file) | Same Stripe redirect | Same as above |
+| Sign up | No API endpoint | Manual at reelmirror.com |
+
+### Fully automatable (after setup)
+
+Once the above are done once, a bot can run the complete loop indefinitely:
+
+1. Create and configure personas
+2. Add source accounts (Instagram/TikTok handles)
+3. Trigger content sync, poll until complete
+4. Browse synced source posts
+5. Generate new content, poll until complete
+6. Approve and publish (or reject)
+7. Poll delivery status
+8. Manage billing (check balance, toggle auto-reload if card on file)
+
+---
+
+## Recommended Scope Set
+
+For the full loop, request these scopes when creating your API key:
+
+```bash
+curl -X POST "https://reelmirror.com/api/v1/api-keys" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Full automation key",
+    "scopes": [
+      "personas:read", "personas:write",
+      "sources:read", "sources:write",
+      "content:read", "content:write",
+      "sync:write",
+      "publishing:read", "publishing:write",
+      "uploads:write",
+      "billing:read"
+    ]
+  }'
+```
+
+Add `billing:write` if the bot should manage auto-reload settings.
+
+---
+
+## Complete Autonomous Loop
+
+### Step 1: Create a persona
+
+```bash
+curl -X POST "https://reelmirror.com/api/v1/personas" \
+  -H "Authorization: Bearer rm_your_key" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "My Creator", "writing_style": "Casual, energetic, uses emojis"}'
+```
+
+### Step 2: Add source accounts
+
+```bash
+curl -X POST "https://reelmirror.com/api/v1/personas/{persona_id}/sources" \
+  -H "Authorization: Bearer rm_your_key" \
+  -H "Content-Type: application/json" \
+  -d '{"platform": "instagram", "username": "target_creator"}'
+```
+
+### Step 3: Trigger sync and poll
+
+```bash
+# Trigger
+curl -X POST "https://reelmirror.com/api/v1/personas/{persona_id}/sync" \
+  -H "Authorization: Bearer rm_your_key"
+# Returns: {"job_ids": ["uuid1", "uuid2"], ...}
+
+# Poll each job until completed/failed/skipped
+# Typical range: 30 seconds – 5 minutes
+while true; do
+  STATUS=$(curl -s "https://reelmirror.com/api/v1/sync-jobs/{job_id}" \
+    -H "Authorization: Bearer rm_your_key" | jq -r '.data.status')
+  [ "$STATUS" = "completed" ] || [ "$STATUS" = "failed" ] || [ "$STATUS" = "skipped" ] && break
+  sleep 15
+done
+```
+
+### Step 4: Browse source posts and generate
+
+```bash
+# List source posts
+curl "https://reelmirror.com/api/v1/personas/{persona_id}/source-posts" \
+  -H "Authorization: Bearer rm_your_key"
+
+# Generate from a source post
+curl -X POST "https://reelmirror.com/api/v1/generate" \
+  -H "Authorization: Bearer rm_your_key" \
+  -H "Content-Type: application/json" \
+  -d '{"source_post_id": "uuid", "persona_id": "persona_uuid"}'
+# Returns: {"generated_post_id": "uuid"}
+
+# Poll until all media_items are completed
+# Typical range: images 20–90s, videos 60–300s
+while true; do
+  POST=$(curl -s "https://reelmirror.com/api/v1/generated-posts/{post_id}" \
+    -H "Authorization: Bearer rm_your_key")
+  ALL_DONE=$(echo $POST | jq '[.data.media_items[].status] | all(. == "completed")')
+  [ "$ALL_DONE" = "true" ] && break
+  sleep 10
+done
+```
+
+### Step 5: Approve and publish
+
+```bash
+curl -X POST "https://reelmirror.com/api/v1/generated-posts/{post_id}/approve" \
+  -H "Authorization: Bearer rm_your_key"
+# Returns: {"status": "publishing", "outgoing_post_id": "uuid"}
+```
+
+### Step 6: Poll delivery status
+
+```bash
+# Poll until all deliveries reach a terminal state (published or failed)
+# Typical range: 10–60 seconds
+while true; do
+  POST=$(curl -s "https://reelmirror.com/api/v1/publishing/posts/{outgoing_post_id}" \
+    -H "Authorization: Bearer rm_your_key")
+  ALL_TERMINAL=$(echo $POST | jq '[.post.deliveries[].status] | all(. == "published" or . == "failed")')
+  [ "$ALL_TERMINAL" = "true" ] && break
+  sleep 10
+done
+```
+
+---
+
+## Error Handling Reference
+
+| Error code | HTTP | Meaning | Bot action |
+|------------|------|---------|------------|
+| `UNAUTHORIZED` | 401 | Missing or invalid token | Check API key |
+| `FORBIDDEN` | 403 | Missing scope | Add missing scope to API key |
+| `INSUFFICIENT_BALANCE` | 402 | Not enough credits | Top up balance via dashboard |
+| `NOT_FOUND` | 404 | Resource doesn't exist | Check IDs |
+| `CONFLICT` | 409 | Duplicate resource (e.g., source already added) | Skip, already exists |
+| `VALIDATION_ERROR` | 400 | Invalid request body | Fix request parameters |
+| `RATE_LIMITED` | 429 | Too many requests | Wait for `X-RateLimit-Reset`, then retry |
+| `UPSTREAM_ERROR` | 502 | External service error (platform API) | Retry with exponential backoff |
+| `SERVICE_UNAVAILABLE` | 503 | ReelMirror temporarily down | Retry after 60 seconds |
+
+### Approve returns 400
+
+If `POST /v1/generated-posts/{id}/approve` returns `400`, the most common cause is that the persona has no connected publishing accounts. Use `send-to-compose` instead, or connect accounts via the dashboard.
+
+### Sync returns no new posts
+
+Sources may be rate-limited or have no new content since the last sync. Check `source_posts` count and the creator's `last_synced_at` field. The 15-minute sync cooldown can be bypassed with `force: true` in direct backend calls.
+
+---
+
+## Idempotency Considerations
+
+- **Source posts**: Each source post has a unique `(creator_id, platform, platform_post_id)`. If you call `/generate` on the same `source_post_id` twice, the second call creates a new generated post — deduplication is your responsibility. Check `GET /v1/personas/{id}/generated-posts` before generating.
+- **Sources**: Adding the same username/platform twice returns `409 CONFLICT`. Catch and skip.
+- **Sync jobs**: Triggering sync within 15 minutes of the last sync returns a `skipped` job immediately.
+
+---
+
+## Polling Best Practices
+
+Use exponential backoff for all polling loops:
+
+```python
+import time
+
+def poll_until_terminal(fetch_fn, is_terminal_fn, max_attempts=60):
+    delay = 5  # start at 5 seconds
+    for attempt in range(max_attempts):
+        result = fetch_fn()
+        if is_terminal_fn(result):
+            return result
+        time.sleep(min(delay, 60))  # cap at 60s
+        delay *= 1.5
+    raise TimeoutError("Polling timed out")
+```
+
+**Expected time ranges:**
+- Sync job: 30 seconds – 5 minutes
+- Image generation: 20 – 90 seconds
+- Video generation: 60 – 300 seconds
+- Publishing delivery: 10 – 60 seconds

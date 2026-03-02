@@ -1,0 +1,127 @@
+---
+title: "Review Queue"
+description: "Approve, reject, and compose generated posts"
+---
+
+## Overview
+
+Every generated post enters a review queue before it can be published. The review queue gives you — or your bot — a chance to inspect, approve, or reject content.
+
+---
+
+## Review Status State Machine
+
+Each generated post has a `review_status` field that moves through the following states:
+
+```
+pending_review → approved   → published
+              → rejected
+```
+
+| State | Meaning |
+|-------|---------|
+| `pending_review` | Awaiting a review action. Default state after generation completes. |
+| `approved` | Approved but not yet published (only reached via `send-to-compose`). |
+| `rejected` | Rejected — will not be published. |
+| `published` | Successfully published to at least one account. |
+
+<Note>
+  A post can only be reviewed once its generation `status` is `completed`. Check that all `media_items[].status === "completed"` before taking a review action.
+</Note>
+
+---
+
+## Three Review Actions
+
+### 1. Approve and publish immediately
+
+Creates an outgoing post and triggers publishing to all connected accounts in a single call.
+
+```bash
+curl -X POST "https://reelmirror.com/api/v1/generated-posts/{post_id}/approve" \
+  -H "Authorization: Bearer rm_your_api_key"
+```
+
+```json
+{
+  "status": "publishing",
+  "outgoing_post_id": "uuid"
+}
+```
+
+**Requires:** At least one active publishing account connected to the persona.
+
+### 2. Reject
+
+Marks the post as rejected. No outgoing post is created.
+
+```bash
+curl -X POST "https://reelmirror.com/api/v1/generated-posts/{post_id}/reject" \
+  -H "Authorization: Bearer rm_your_api_key"
+```
+
+### 3. Send to compose
+
+Approves the post and creates a **draft** outgoing post for further editing, without publishing immediately. Sets `review_status` to `approved`.
+
+```bash
+curl -X POST "https://reelmirror.com/api/v1/generated-posts/{post_id}/send-to-compose" \
+  -H "Authorization: Bearer rm_your_api_key"
+```
+
+```json
+{ "outgoing_post_id": "uuid" }
+```
+
+From here you can edit the caption, add platform settings, then publish or schedule via the [publishing endpoints](/guides/publishing).
+
+---
+
+## Per-Item Rejection
+
+You can reject individual media items within a post. This is useful when a post has multiple items and only some need to be replaced.
+
+```bash
+curl -X POST "https://reelmirror.com/api/v1/generated-media-items/{item_id}/reject" \
+  -H "Authorization: Bearer rm_your_api_key"
+```
+
+```json
+{
+  "status": "rejected",
+  "post_auto_rejected": false
+}
+```
+
+**Auto-rejection:** If all items in a post are rejected, the parent post is automatically set to `review_status: "rejected"`. The `post_auto_rejected` field in the response will be `true` when this happens.
+
+---
+
+## Automating Review
+
+A bot that wants to auto-approve all completed posts can run the following loop:
+
+```python
+# Poll for posts pending review
+posts = api.get(f"/v1/personas/{persona_id}/generated-posts")
+
+for post in posts["data"]:
+    # Only act on fully completed posts
+    if post["status"] != "completed":
+        continue
+    if post["review_status"] != "pending_review":
+        continue
+    all_items_done = all(
+        item["status"] == "completed"
+        for item in post["media_items"]
+    )
+    if not all_items_done:
+        continue
+
+    # Approve and publish
+    api.post(f"/v1/generated-posts/{post['id']}/approve")
+```
+
+<Warning>
+  Auto-approving requires connected publishing accounts. If none are connected, the `/approve` call returns `400`. Set up accounts via the dashboard first.
+</Warning>
