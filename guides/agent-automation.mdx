@@ -9,17 +9,78 @@ This guide is written for autonomous agents (bots, LLMs, automated pipelines) us
 
 ---
 
-## What a Bot Can Do
+## Autonomous Account Creation
+
+An agent can bootstrap a ReelMirror account entirely on its own — no human required.
+
+### Step 1: Sign up
+
+```bash
+curl -X POST "https://reelmirror.com/api/v1/auth/signup" \
+  -H "Content-Type: application/json" \
+  -d '{"email": "agent@example.com", "password": "<strong-random-password>"}'
+# → {"status": "pending_confirmation", "user_id": "..."}
+```
+
+The agent must store the password securely. The account starts with **$0 balance** — the $5 welcome bonus is deferred until a payment method is attached.
+
+**Rate limit**: 5 signups per IP per 24 hours. **No auth required.**
+
+### Step 2: Confirm email
+
+Supabase sends a confirmation link to the provided email. The agent reads the link from its inbox and follows it. Once confirmed, `email_confirmed_at` is set on the user.
+
+### Step 3: Get an API key
+
+Use the Supabase JWT from the email confirmation callback to exchange for a permanent API key:
+
+```bash
+curl -X POST "https://reelmirror.com/api/v1/api-keys" \
+  -H "Authorization: Bearer <supabase_jwt>" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "agent-key", "scopes": ["personas:read", "personas:write", "sources:read", "sources:write", "content:read", "content:write", "sync:write", "uploads:write", "publishing:read", "publishing:write", "billing:read", "billing:write"]}'
+# → {"id": "...", "key": "rm_xxx", "scopes": [...]}
+```
+
+Use the returned `rm_xxx` key for all future calls.
+
+### Step 4: Attach a payment method (optional, unlocks $5 bonus)
+
+For ongoing autonomous operation beyond the welcome bonus, the agent attaches a card headlessly using the Stripe SDK:
+
+```bash
+# 1. Get a SetupIntent client_secret
+curl -X POST "https://reelmirror.com/api/v1/billing/setup-intent" \
+  -H "Authorization: Bearer rm_xxx"
+# → {"client_secret": "seti_xxx_secret_xxx"}
+
+# 2. Confirm with Stripe SDK (server-side, using card details)
+# stripe.setupIntents.confirm(client_secret, { payment_method: pm_xxx })
+```
+
+Once the SetupIntent is confirmed, Stripe fires `setup_intent.succeeded` and the server grants the **$5 welcome bonus** automatically.
+
+### Step 5: Enable auto-reload (optional)
+
+```bash
+curl -X PATCH "https://reelmirror.com/api/v1/billing/balance" \
+  -H "Authorization: Bearer rm_xxx" \
+  -H "Content-Type: application/json" \
+  -d '{"auto_reload": true, "reload_threshold_cents": 500, "reload_amount_cents": 2500}'
+```
+
+Auto-reload is **off by default** — the agent must explicitly opt in. This requires a saved payment method.
+
+---
+
+## What a Bot Can Do (summary)
 
 ### One-time human setup required
 
 | Action | Why | How to unblock |
 |--------|-----|----------------|
 | Connect publishing accounts | OAuth browser redirect | Set up once in the dashboard |
-| Fund the account | `/v1/billing/topup` returns a Stripe URL | Top up via the dashboard |
-| Enable auto-reload (no card on file) | `PATCH /v1/billing/balance` returns a Stripe setup URL | Add card via the dashboard |
-| Purchase account slots (no card on file) | Same Stripe redirect | Same as above |
-| Sign up | No API endpoint | Manual at reelmirror.com |
+| Fund the account | `/v1/billing/topup` returns a Stripe URL | Top up via the dashboard, or use headless Stripe SDK after setup-intent |
 
 ### Fully automatable (after setup)
 

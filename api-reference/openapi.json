@@ -32,171 +32,559 @@
             "properties": {
               "code": {
                 "type": "string",
-                "enum": ["VALIDATION_ERROR", "UNAUTHORIZED", "INSUFFICIENT_BALANCE", "FORBIDDEN", "NOT_FOUND", "CONFLICT", "RATE_LIMITED", "INTERNAL_ERROR", "UPSTREAM_ERROR", "SERVICE_UNAVAILABLE"]
+                "enum": [
+                  "VALIDATION_ERROR",
+                  "UNAUTHORIZED",
+                  "INSUFFICIENT_BALANCE",
+                  "FORBIDDEN",
+                  "NOT_FOUND",
+                  "CONFLICT",
+                  "RATE_LIMITED",
+                  "INTERNAL_ERROR",
+                  "UPSTREAM_ERROR",
+                  "SERVICE_UNAVAILABLE"
+                ]
               },
-              "message": { "type": "string" },
-              "details": { "type": "object" }
+              "message": {
+                "type": "string"
+              },
+              "details": {
+                "type": "object"
+              }
             },
-            "required": ["code", "message"]
+            "required": [
+              "code",
+              "message"
+            ]
           }
         }
       },
       "Persona": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "name": { "type": "string" },
-          "description": { "type": "string", "nullable": true },
-          "writing_style": { "type": "string", "nullable": true },
-          "cloning_style": { "type": "string", "nullable": true },
-          "avatar_url": { "type": "string", "nullable": true },
-          "voice_sample_url": { "type": "string", "nullable": true },
-          "discount_mode": { "type": "boolean" },
-          "created_at": { "type": "string", "format": "date-time" }
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "writing_style": {
+            "type": "string",
+            "nullable": true
+          },
+          "cloning_style": {
+            "type": "string",
+            "nullable": true
+          },
+          "avatar_url": {
+            "type": "string",
+            "nullable": true
+          },
+          "voice_sample_url": {
+            "type": "string",
+            "nullable": true
+          },
+          "discount_mode": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       },
       "Source": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "creator_id": { "type": "string", "format": "uuid" },
-          "platform": { "type": "string", "enum": ["instagram", "tiktok"] },
-          "username": { "type": "string" },
-          "status": { "type": "string", "enum": ["pending", "synced", "error"] },
-          "last_synced_at": { "type": "string", "format": "date-time", "nullable": true },
-          "content_count": { "type": "integer" },
-          "created_at": { "type": "string", "format": "date-time" }
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "creator_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "instagram",
+              "tiktok"
+            ]
+          },
+          "username": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "synced",
+              "error"
+            ]
+          },
+          "last_synced_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "content_count": {
+            "type": "integer"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       },
       "GeneratedPost": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "persona_id": { "type": "string", "format": "uuid" },
-          "source_post_id": { "type": "string", "format": "uuid" },
-          "status": { "type": "string", "enum": ["pending", "generating", "completed", "failed"] },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "persona_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "source_post_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "generating",
+              "completed",
+              "failed"
+            ]
+          },
           "review_status": {
             "type": "string",
-            "enum": ["pending_review", "approved", "rejected", "published"],
+            "enum": [
+              "pending_review",
+              "approved",
+              "rejected",
+              "published"
+            ],
             "description": "Review lifecycle state. `pending_review` = awaiting action; `approved` = approved but not yet published; `rejected` = rejected; `published` = published to at least one account."
           },
-          "caption": { "type": "string", "nullable": true },
+          "caption": {
+            "type": "string",
+            "nullable": true
+          },
           "media_items": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/GeneratedMediaItem" }
+            "items": {
+              "$ref": "#/components/schemas/GeneratedMediaItem"
+            }
           },
-          "created_at": { "type": "string", "format": "date-time" },
-          "updated_at": { "type": "string", "format": "date-time" }
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       },
       "GeneratedMediaItem": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "media_type": { "type": "string", "enum": ["image", "video"] },
-          "position": { "type": "integer" },
-          "status": { "type": "string", "enum": ["pending", "generating", "completed", "failed"] },
-          "url": { "type": "string", "nullable": true },
-          "is_public": { "type": "boolean" },
-          "discount_applied": { "type": "boolean" },
-          "voice_conversion_status": { "type": "string", "nullable": true },
-          "created_at": { "type": "string", "format": "date-time" }
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "media_type": {
+            "type": "string",
+            "enum": [
+              "image",
+              "video"
+            ]
+          },
+          "position": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "generating",
+              "completed",
+              "failed"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "nullable": true
+          },
+          "is_public": {
+            "type": "boolean"
+          },
+          "discount_applied": {
+            "type": "boolean"
+          },
+          "voice_conversion_status": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       },
       "SyncJob": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "status": { "type": "string", "enum": ["pending", "running", "completed", "failed", "skipped"] },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "running",
+              "completed",
+              "failed",
+              "skipped"
+            ]
+          },
           "creator": {
             "type": "object",
             "properties": {
-              "handle": { "type": "string" },
-              "platform": { "type": "string" }
+              "handle": {
+                "type": "string"
+              },
+              "platform": {
+                "type": "string"
+              }
             }
           },
-          "estimated_cost_cents": { "type": "integer" },
-          "error_message": { "type": "string", "nullable": true, "description": "Error detail when status is `failed`" },
-          "completed_at": { "type": "string", "format": "date-time", "nullable": true, "description": "When the job reached `completed` or `skipped` status" },
-          "failed_at": { "type": "string", "format": "date-time", "nullable": true, "description": "When the job reached `failed` status" },
-          "created_at": { "type": "string", "format": "date-time" },
-          "updated_at": { "type": "string", "format": "date-time" }
+          "estimated_cost_cents": {
+            "type": "integer"
+          },
+          "error_message": {
+            "type": "string",
+            "nullable": true,
+            "description": "Error detail when status is `failed`"
+          },
+          "completed_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "When the job reached `completed` or `skipped` status"
+          },
+          "failed_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "When the job reached `failed` status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       },
       "ConnectedAccount": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "platform": { "type": "string", "enum": ["instagram", "tiktok"] },
-          "username": { "type": "string" },
-          "status": { "type": "string", "enum": ["active", "expired", "error"], "description": "`active` = token valid; `expired` = token expired, reconnect needed; `error` = connection error" },
-          "created_at": { "type": "string", "format": "date-time" }
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "instagram",
+              "tiktok"
+            ]
+          },
+          "username": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "expired",
+              "error"
+            ],
+            "description": "`active` = token valid; `expired` = token expired, reconnect needed; `error` = connection error"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       },
       "OutgoingPostDelivery": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "connected_account_id": { "type": "string", "format": "uuid" },
-          "platform": { "type": "string", "enum": ["instagram", "tiktok"] },
-          "username": { "type": "string" },
-          "status": { "type": "string", "enum": ["pending", "publishing", "published", "failed"], "description": "Terminal states: `published` (success) and `failed` (permanent error). Poll until terminal." },
-          "platform_post_id": { "type": "string", "nullable": true, "description": "Platform-assigned post ID after successful publish" },
-          "error_message": { "type": "string", "nullable": true, "description": "Error detail when status is `failed`" },
-          "published_at": { "type": "string", "format": "date-time", "nullable": true }
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "connected_account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "instagram",
+              "tiktok"
+            ]
+          },
+          "username": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "publishing",
+              "published",
+              "failed"
+            ],
+            "description": "Terminal states: `published` (success) and `failed` (permanent error). Poll until terminal."
+          },
+          "platform_post_id": {
+            "type": "string",
+            "nullable": true,
+            "description": "Platform-assigned post ID after successful publish"
+          },
+          "error_message": {
+            "type": "string",
+            "nullable": true,
+            "description": "Error detail when status is `failed`"
+          },
+          "published_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
         }
       },
       "OutgoingPost": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "persona_id": { "type": "string", "format": "uuid", "nullable": true },
-          "caption": { "type": "string", "nullable": true },
-          "status": { "type": "string", "enum": ["draft", "scheduled", "publishing", "published", "failed", "cancelled"] },
-          "scheduled_for": { "type": "string", "format": "date-time", "nullable": true },
-          "platform_settings": { "type": "object", "nullable": true },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "persona_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "caption": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "scheduled",
+              "publishing",
+              "published",
+              "failed",
+              "cancelled"
+            ]
+          },
+          "scheduled_for": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "platform_settings": {
+            "type": "object",
+            "nullable": true
+          },
           "items": {
             "type": "array",
             "items": {
               "type": "object",
               "properties": {
-                "id": { "type": "string", "format": "uuid" },
-                "generated_media_item_id": { "type": "string", "format": "uuid" },
-                "position": { "type": "integer" },
-                "use_voice_converted": { "type": "boolean" }
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "generated_media_item_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "position": {
+                  "type": "integer"
+                },
+                "use_voice_converted": {
+                  "type": "boolean"
+                }
               }
             }
           },
           "deliveries": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/OutgoingPostDelivery" },
+            "items": {
+              "$ref": "#/components/schemas/OutgoingPostDelivery"
+            },
             "description": "One delivery per target publishing account. Check all deliveries to determine overall publish outcome."
           },
-          "created_at": { "type": "string", "format": "date-time" },
-          "updated_at": { "type": "string", "format": "date-time" }
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       },
       "Balance": {
         "type": "object",
         "properties": {
-          "balance_cents": { "type": "integer" },
-          "balance_dollars": { "type": "string" },
-          "auto_reload": { "type": "boolean" },
-          "reload_threshold_cents": { "type": "integer", "nullable": true },
-          "reload_amount_cents": { "type": "integer", "nullable": true }
+          "balance_cents": {
+            "type": "integer"
+          },
+          "balance_dollars": {
+            "type": "string"
+          },
+          "auto_reload": {
+            "type": "boolean"
+          },
+          "reload_threshold_cents": {
+            "type": "integer",
+            "nullable": true
+          },
+          "reload_amount_cents": {
+            "type": "integer",
+            "nullable": true
+          }
         }
       },
       "Transaction": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "amount_cents": { "type": "integer" },
-          "operation_type": { "type": "string" },
-          "description": { "type": "string" },
-          "created_at": { "type": "string", "format": "date-time" },
-          "generated_post_id": { "type": "string", "format": "uuid", "nullable": true },
-          "generated_media_item_id": { "type": "string", "format": "uuid", "nullable": true },
-          "refund_of_id": { "type": "string", "format": "uuid", "nullable": true }
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amount_cents": {
+            "type": "integer"
+          },
+          "operation_type": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "generated_post_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "generated_media_item_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "refund_of_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          }
+        }
+      },
+      "FeedbackItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "bug_report",
+              "feature_request",
+              "general"
+            ]
+          },
+          "subject": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "in_review",
+              "resolved",
+              "closed"
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "FeedbackResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "feedback_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "author_type": {
+            "type": "string",
+            "enum": [
+              "user",
+              "admin",
+              "agent"
+            ],
+            "description": "`user` = the ticket owner; `admin` = support team; `agent` = AI first responder"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "message": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       }
     },
@@ -204,34 +592,80 @@
       "limit": {
         "name": "limit",
         "in": "query",
-        "schema": { "type": "integer", "default": 20, "maximum": 100 },
+        "schema": {
+          "type": "integer",
+          "default": 20,
+          "maximum": 100
+        },
         "description": "Maximum number of results to return"
       },
       "offset": {
         "name": "offset",
         "in": "query",
-        "schema": { "type": "integer", "default": 0 },
+        "schema": {
+          "type": "integer",
+          "default": 0
+        },
         "description": "Number of results to skip"
       }
     }
   },
   "tags": [
-    { "name": "API Keys", "description": "Manage API keys" },
-    { "name": "Personas", "description": "Create and manage personas" },
-    { "name": "Sources", "description": "Track social accounts" },
-    { "name": "Sync", "description": "Sync content from sources" },
-    { "name": "Generation", "description": "Generate AI content" },
-    { "name": "Content", "description": "Browse synced and generated content" },
-    { "name": "Review", "description": "Approve, reject, or compose generated posts" },
-    { "name": "Publishing", "description": "Manage outgoing posts and connected publishing accounts" },
-    { "name": "Profile", "description": "Manage your account profile" },
-    { "name": "Billing", "description": "Balance and transaction history" },
-    { "name": "Uploads", "description": "Upload files" }
+    {
+      "name": "API Keys",
+      "description": "Manage API keys"
+    },
+    {
+      "name": "Personas",
+      "description": "Create and manage personas"
+    },
+    {
+      "name": "Sources",
+      "description": "Track social accounts"
+    },
+    {
+      "name": "Sync",
+      "description": "Sync content from sources"
+    },
+    {
+      "name": "Generation",
+      "description": "Generate AI content"
+    },
+    {
+      "name": "Content",
+      "description": "Browse synced and generated content"
+    },
+    {
+      "name": "Review",
+      "description": "Approve, reject, or compose generated posts"
+    },
+    {
+      "name": "Publishing",
+      "description": "Manage outgoing posts and connected publishing accounts"
+    },
+    {
+      "name": "Profile",
+      "description": "Manage your account profile"
+    },
+    {
+      "name": "Billing",
+      "description": "Balance and transaction history"
+    },
+    {
+      "name": "Uploads",
+      "description": "Upload files"
+    },
+    {
+      "name": "Feedback",
+      "description": "Submit and track feedback tickets"
+    }
   ],
   "paths": {
     "/v1/api-keys": {
       "post": {
-        "tags": ["API Keys"],
+        "tags": [
+          "API Keys"
+        ],
         "summary": "Create API key",
         "operationId": "createApiKey",
         "requestBody": {
@@ -240,12 +674,19 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["name"],
+                "required": [
+                  "name"
+                ],
                 "properties": {
-                  "name": { "type": "string", "description": "Display name for the key" },
+                  "name": {
+                    "type": "string",
+                    "description": "Display name for the key"
+                  },
                   "scopes": {
                     "type": "array",
-                    "items": { "type": "string" },
+                    "items": {
+                      "type": "string"
+                    },
                     "description": "Permission scopes. Defaults to all except billing:read."
                   }
                 }
@@ -261,11 +702,26 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "id": { "type": "string" },
-                    "name": { "type": "string" },
-                    "key": { "type": "string", "description": "Full API key (only shown once)" },
-                    "scopes": { "type": "array", "items": { "type": "string" } },
-                    "created_at": { "type": "string", "format": "date-time" }
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "key": {
+                      "type": "string",
+                      "description": "Full API key (only shown once)"
+                    },
+                    "scopes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
                   }
                 }
               }
@@ -274,7 +730,9 @@
         }
       },
       "get": {
-        "tags": ["API Keys"],
+        "tags": [
+          "API Keys"
+        ],
         "summary": "List API keys",
         "operationId": "listApiKeys",
         "responses": {
@@ -290,12 +748,30 @@
                       "items": {
                         "type": "object",
                         "properties": {
-                          "id": { "type": "string" },
-                          "name": { "type": "string" },
-                          "key_hint": { "type": "string" },
-                          "scopes": { "type": "array", "items": { "type": "string" } },
-                          "created_at": { "type": "string", "format": "date-time" },
-                          "last_used_at": { "type": "string", "format": "date-time", "nullable": true }
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "key_hint": {
+                            "type": "string"
+                          },
+                          "scopes": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "created_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "last_used_at": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true
+                          }
                         }
                       }
                     }
@@ -309,11 +785,20 @@
     },
     "/v1/api-keys/{key_id}": {
       "delete": {
-        "tags": ["API Keys"],
+        "tags": [
+          "API Keys"
+        ],
         "summary": "Delete API key",
         "operationId": "deleteApiKey",
         "parameters": [
-          { "name": "key_id", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "key_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -323,8 +808,12 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string" },
-                    "id": { "type": "string" }
+                    "status": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    }
                   }
                 }
               }
@@ -335,7 +824,9 @@
     },
     "/v1/personas": {
       "post": {
-        "tags": ["Personas"],
+        "tags": [
+          "Personas"
+        ],
         "summary": "Create persona",
         "operationId": "createPersona",
         "requestBody": {
@@ -344,12 +835,22 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["name"],
+                "required": [
+                  "name"
+                ],
                 "properties": {
-                  "name": { "type": "string" },
-                  "description": { "type": "string" },
-                  "writing_style": { "type": "string" },
-                  "cloning_style": { "type": "string" }
+                  "name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "writing_style": {
+                    "type": "string"
+                  },
+                  "cloning_style": {
+                    "type": "string"
+                  }
                 }
               }
             }
@@ -362,7 +863,11 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": { "data": { "$ref": "#/components/schemas/Persona" } }
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Persona"
+                    }
+                  }
                 }
               }
             }
@@ -370,12 +875,18 @@
         }
       },
       "get": {
-        "tags": ["Personas"],
+        "tags": [
+          "Personas"
+        ],
         "summary": "List personas",
         "operationId": "listPersonas",
         "parameters": [
-          { "$ref": "#/components/parameters/limit" },
-          { "$ref": "#/components/parameters/offset" }
+          {
+            "$ref": "#/components/parameters/limit"
+          },
+          {
+            "$ref": "#/components/parameters/offset"
+          }
         ],
         "responses": {
           "200": {
@@ -385,8 +896,15 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/Persona" } },
-                    "count": { "type": "integer" }
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Persona"
+                      }
+                    },
+                    "count": {
+                      "type": "integer"
+                    }
                   }
                 }
               }
@@ -397,11 +915,20 @@
     },
     "/v1/personas/{persona_id}": {
       "get": {
-        "tags": ["Personas"],
+        "tags": [
+          "Personas"
+        ],
         "summary": "Get persona",
         "operationId": "getPersona",
         "parameters": [
-          { "name": "persona_id", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "persona_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -410,7 +937,11 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": { "data": { "$ref": "#/components/schemas/Persona" } }
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Persona"
+                    }
+                  }
                 }
               }
             }
@@ -418,11 +949,20 @@
         }
       },
       "patch": {
-        "tags": ["Personas"],
+        "tags": [
+          "Personas"
+        ],
         "summary": "Update persona",
         "operationId": "updatePersona",
         "parameters": [
-          { "name": "persona_id", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "persona_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "requestBody": {
           "content": {
@@ -430,11 +970,21 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "name": { "type": "string" },
-                  "description": { "type": "string" },
-                  "writing_style": { "type": "string" },
-                  "cloning_style": { "type": "string" },
-                  "discount_mode": { "type": "boolean" }
+                  "name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "writing_style": {
+                    "type": "string"
+                  },
+                  "cloning_style": {
+                    "type": "string"
+                  },
+                  "discount_mode": {
+                    "type": "boolean"
+                  }
                 }
               }
             }
@@ -447,7 +997,11 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": { "data": { "$ref": "#/components/schemas/Persona" } }
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Persona"
+                    }
+                  }
                 }
               }
             }
@@ -455,11 +1009,20 @@
         }
       },
       "delete": {
-        "tags": ["Personas"],
+        "tags": [
+          "Personas"
+        ],
         "summary": "Delete persona",
         "operationId": "deletePersona",
         "parameters": [
-          { "name": "persona_id", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "persona_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -468,7 +1031,14 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": { "status": { "type": "string" }, "id": { "type": "string" } }
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    }
+                  }
                 }
               }
             }
@@ -478,11 +1048,20 @@
     },
     "/v1/personas/{persona_id}/sources": {
       "post": {
-        "tags": ["Sources"],
+        "tags": [
+          "Sources"
+        ],
         "summary": "Add source",
         "operationId": "addSource",
         "parameters": [
-          { "name": "persona_id", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "persona_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "requestBody": {
           "required": true,
@@ -490,10 +1069,21 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["platform", "username"],
+                "required": [
+                  "platform",
+                  "username"
+                ],
                 "properties": {
-                  "platform": { "type": "string", "enum": ["instagram", "tiktok"] },
-                  "username": { "type": "string" }
+                  "platform": {
+                    "type": "string",
+                    "enum": [
+                      "instagram",
+                      "tiktok"
+                    ]
+                  },
+                  "username": {
+                    "type": "string"
+                  }
                 }
               }
             }
@@ -506,7 +1096,11 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": { "data": { "$ref": "#/components/schemas/Source" } }
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Source"
+                    }
+                  }
                 }
               }
             }
@@ -514,13 +1108,26 @@
         }
       },
       "get": {
-        "tags": ["Sources"],
+        "tags": [
+          "Sources"
+        ],
         "summary": "List sources",
         "operationId": "listSources",
         "parameters": [
-          { "name": "persona_id", "in": "path", "required": true, "schema": { "type": "string" } },
-          { "$ref": "#/components/parameters/limit" },
-          { "$ref": "#/components/parameters/offset" }
+          {
+            "name": "persona_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/limit"
+          },
+          {
+            "$ref": "#/components/parameters/offset"
+          }
         ],
         "responses": {
           "200": {
@@ -530,8 +1137,15 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/Source" } },
-                    "count": { "type": "integer" }
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Source"
+                      }
+                    },
+                    "count": {
+                      "type": "integer"
+                    }
                   }
                 }
               }
@@ -542,12 +1156,28 @@
     },
     "/v1/personas/{persona_id}/sources/{source_id}": {
       "delete": {
-        "tags": ["Sources"],
+        "tags": [
+          "Sources"
+        ],
         "summary": "Remove source",
         "operationId": "removeSource",
         "parameters": [
-          { "name": "persona_id", "in": "path", "required": true, "schema": { "type": "string" } },
-          { "name": "source_id", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "persona_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "source_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -556,7 +1186,14 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": { "status": { "type": "string" }, "id": { "type": "string" } }
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    }
+                  }
                 }
               }
             }
@@ -566,12 +1203,21 @@
     },
     "/v1/personas/{persona_id}/sync": {
       "post": {
-        "tags": ["Sync"],
+        "tags": [
+          "Sync"
+        ],
         "summary": "Trigger sync",
         "description": "Sync all sources for a persona. Debits balance for estimated API requests. Returns job IDs for status polling.",
         "operationId": "triggerSync",
         "parameters": [
-          { "name": "persona_id", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "persona_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
           "202": {
@@ -581,11 +1227,24 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string" },
-                    "persona_id": { "type": "string" },
-                    "sources_count": { "type": "integer" },
-                    "job_ids": { "type": "array", "items": { "type": "string" } },
-                    "estimated_cost_cents": { "type": "integer" }
+                    "status": {
+                      "type": "string"
+                    },
+                    "persona_id": {
+                      "type": "string"
+                    },
+                    "sources_count": {
+                      "type": "integer"
+                    },
+                    "job_ids": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "estimated_cost_cents": {
+                      "type": "integer"
+                    }
                   }
                 }
               }
@@ -596,11 +1255,20 @@
     },
     "/v1/sync-jobs/{job_id}": {
       "get": {
-        "tags": ["Sync"],
+        "tags": [
+          "Sync"
+        ],
         "summary": "Get sync job status",
         "operationId": "getSyncJob",
         "parameters": [
-          { "name": "job_id", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -609,7 +1277,11 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": { "data": { "$ref": "#/components/schemas/SyncJob" } }
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/SyncJob"
+                    }
+                  }
                 }
               }
             }
@@ -619,7 +1291,9 @@
     },
     "/v1/generate": {
       "post": {
-        "tags": ["Generation"],
+        "tags": [
+          "Generation"
+        ],
         "summary": "Generate from source post",
         "description": "Trigger AI content generation from a synced source post. Debits balance per media item + caption.",
         "operationId": "generate",
@@ -629,10 +1303,19 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["source_post_id", "persona_id"],
+                "required": [
+                  "source_post_id",
+                  "persona_id"
+                ],
                 "properties": {
-                  "source_post_id": { "type": "string", "format": "uuid" },
-                  "persona_id": { "type": "string", "format": "uuid" }
+                  "source_post_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "persona_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
                 }
               }
             }
@@ -646,8 +1329,12 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string" },
-                    "generated_post_id": { "type": "string" }
+                    "status": {
+                      "type": "string"
+                    },
+                    "generated_post_id": {
+                      "type": "string"
+                    }
                   }
                 }
               }
@@ -658,7 +1345,9 @@
     },
     "/v1/generate/media-item": {
       "post": {
-        "tags": ["Generation"],
+        "tags": [
+          "Generation"
+        ],
         "summary": "Regenerate media item",
         "description": "Create a new version of a generated media item.",
         "operationId": "regenerateMediaItem",
@@ -668,9 +1357,14 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["generated_media_item_id"],
+                "required": [
+                  "generated_media_item_id"
+                ],
                 "properties": {
-                  "generated_media_item_id": { "type": "string", "format": "uuid" }
+                  "generated_media_item_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
                 }
               }
             }
@@ -684,8 +1378,12 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string" },
-                    "generated_media_item_id": { "type": "string" }
+                    "status": {
+                      "type": "string"
+                    },
+                    "generated_media_item_id": {
+                      "type": "string"
+                    }
                   }
                 }
               }
@@ -696,7 +1394,9 @@
     },
     "/v1/generate/voice-convert": {
       "post": {
-        "tags": ["Generation"],
+        "tags": [
+          "Generation"
+        ],
         "summary": "Voice convert video",
         "description": "Apply voice conversion to a completed generated video. Requires persona to have a voice sample.",
         "operationId": "voiceConvert",
@@ -706,9 +1406,14 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["generated_media_item_id"],
+                "required": [
+                  "generated_media_item_id"
+                ],
                 "properties": {
-                  "generated_media_item_id": { "type": "string", "format": "uuid" }
+                  "generated_media_item_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
                 }
               }
             }
@@ -722,8 +1427,12 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string" },
-                    "generated_media_item_id": { "type": "string" }
+                    "status": {
+                      "type": "string"
+                    },
+                    "generated_media_item_id": {
+                      "type": "string"
+                    }
                   }
                 }
               }
@@ -734,7 +1443,9 @@
     },
     "/v1/generate/toggle-public": {
       "post": {
-        "tags": ["Generation"],
+        "tags": [
+          "Generation"
+        ],
         "summary": "Toggle public visibility",
         "description": "Make a generated media item public or private. Discounted public items are locked for 20 days.",
         "operationId": "togglePublic",
@@ -744,10 +1455,18 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["generated_media_item_id", "is_public"],
+                "required": [
+                  "generated_media_item_id",
+                  "is_public"
+                ],
                 "properties": {
-                  "generated_media_item_id": { "type": "string", "format": "uuid" },
-                  "is_public": { "type": "boolean" }
+                  "generated_media_item_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "is_public": {
+                    "type": "boolean"
+                  }
                 }
               }
             }
@@ -764,8 +1483,12 @@
                     "data": {
                       "type": "object",
                       "properties": {
-                        "id": { "type": "string" },
-                        "is_public": { "type": "boolean" }
+                        "id": {
+                          "type": "string"
+                        },
+                        "is_public": {
+                          "type": "boolean"
+                        }
                       }
                     }
                   }
@@ -778,7 +1501,9 @@
     },
     "/v1/clone-url": {
       "post": {
-        "tags": ["Generation"],
+        "tags": [
+          "Generation"
+        ],
         "summary": "Clone from Instagram URL",
         "description": "Fetch a single Instagram post by URL and generate AI content from it in one step.",
         "operationId": "cloneUrl",
@@ -788,10 +1513,19 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["url", "persona_id"],
+                "required": [
+                  "url",
+                  "persona_id"
+                ],
                 "properties": {
-                  "url": { "type": "string", "description": "Instagram post/reel/TV URL" },
-                  "persona_id": { "type": "string", "format": "uuid" }
+                  "url": {
+                    "type": "string",
+                    "description": "Instagram post/reel/TV URL"
+                  },
+                  "persona_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
                 }
               }
             }
@@ -805,8 +1539,12 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string" },
-                    "generated_post_id": { "type": "string" }
+                    "status": {
+                      "type": "string"
+                    },
+                    "generated_post_id": {
+                      "type": "string"
+                    }
                   }
                 }
               }
@@ -817,7 +1555,9 @@
     },
     "/v1/generate/regenerate-post": {
       "post": {
-        "tags": ["Generation"],
+        "tags": [
+          "Generation"
+        ],
         "summary": "Regenerate post",
         "description": "Regenerate a generated post. By default, soft-deletes all existing media items and re-triggers generation from scratch. When `failed_only` is true, retries only failed media items without touching completed ones or the caption.",
         "operationId": "regeneratePost",
@@ -827,9 +1567,14 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["generated_post_id"],
+                "required": [
+                  "generated_post_id"
+                ],
                 "properties": {
-                  "generated_post_id": { "type": "string", "format": "uuid" },
+                  "generated_post_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
                   "failed_only": {
                     "type": "boolean",
                     "default": false,
@@ -851,29 +1596,56 @@
                       "type": "object",
                       "description": "Full regeneration response",
                       "properties": {
-                        "status": { "type": "string" },
-                        "generated_post_id": { "type": "string" }
+                        "status": {
+                          "type": "string"
+                        },
+                        "generated_post_id": {
+                          "type": "string"
+                        }
                       }
                     },
                     {
                       "type": "object",
                       "description": "Failed-only retry response",
                       "properties": {
-                        "status": { "type": "string" },
-                        "generated_post_id": { "type": "string" },
+                        "status": {
+                          "type": "string"
+                        },
+                        "generated_post_id": {
+                          "type": "string"
+                        },
                         "retried_items": {
                           "type": "array",
                           "items": {
                             "type": "object",
                             "properties": {
-                              "original_item_id": { "type": "string", "format": "uuid" },
-                              "new_item_id": { "type": "string", "format": "uuid" },
-                              "media_type": { "type": "string", "enum": ["image", "video"] },
-                              "status": { "type": "string", "enum": ["pending"] }
+                              "original_item_id": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "new_item_id": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "media_type": {
+                                "type": "string",
+                                "enum": [
+                                  "image",
+                                  "video"
+                                ]
+                              },
+                              "status": {
+                                "type": "string",
+                                "enum": [
+                                  "pending"
+                                ]
+                              }
                             }
                           }
                         },
-                        "total_cost_cents": { "type": "integer" }
+                        "total_cost_cents": {
+                          "type": "integer"
+                        }
                       }
                     }
                   ]
@@ -888,7 +1660,9 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": { "type": "string" }
+                    "error": {
+                      "type": "string"
+                    }
                   }
                 }
               }
@@ -899,12 +1673,21 @@
     },
     "/v1/generated-posts/{post_id}": {
       "get": {
-        "tags": ["Content"],
+        "tags": [
+          "Content"
+        ],
         "summary": "Get generated post",
         "description": "Get a generated post with all its media items. Use for polling generation status. Soft-deleted posts are excluded.",
         "operationId": "getGeneratedPost",
         "parameters": [
-          { "name": "post_id", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "post_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -913,7 +1696,11 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": { "data": { "$ref": "#/components/schemas/GeneratedPost" } }
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/GeneratedPost"
+                    }
+                  }
                 }
               }
             }
@@ -921,12 +1708,21 @@
         }
       },
       "delete": {
-        "tags": ["Content"],
+        "tags": [
+          "Content"
+        ],
         "summary": "Delete generated post",
         "description": "Soft-delete a generated post and all its media items. The source post can then be re-cloned. R2 files are cleaned up asynchronously.",
         "operationId": "deleteGeneratedPost",
         "parameters": [
-          { "name": "post_id", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "post_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -936,8 +1732,12 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string" },
-                    "id": { "type": "string" }
+                    "status": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    }
                   }
                 }
               }
@@ -948,12 +1748,21 @@
     },
     "/v1/generated-media-items/{item_id}": {
       "get": {
-        "tags": ["Content"],
+        "tags": [
+          "Content"
+        ],
         "summary": "Get generated media item",
         "description": "Get a single generated media item. Use for polling item-level status. Soft-deleted items are excluded.",
         "operationId": "getGeneratedMediaItem",
         "parameters": [
-          { "name": "item_id", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -962,7 +1771,11 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": { "data": { "$ref": "#/components/schemas/GeneratedMediaItem" } }
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/GeneratedMediaItem"
+                    }
+                  }
                 }
               }
             }
@@ -970,12 +1783,21 @@
         }
       },
       "delete": {
-        "tags": ["Content"],
+        "tags": [
+          "Content"
+        ],
         "summary": "Delete generated media item",
         "description": "Soft-delete a single generated media item. R2 files are cleaned up asynchronously.",
         "operationId": "deleteGeneratedMediaItem",
         "parameters": [
-          { "name": "item_id", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -985,8 +1807,12 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string" },
-                    "id": { "type": "string" }
+                    "status": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    }
                   }
                 }
               }
@@ -997,14 +1823,27 @@
     },
     "/v1/personas/{persona_id}/source-posts": {
       "get": {
-        "tags": ["Content"],
+        "tags": [
+          "Content"
+        ],
         "summary": "List source posts",
         "description": "List synced source posts from a persona's tracked creators.",
         "operationId": "listSourcePosts",
         "parameters": [
-          { "name": "persona_id", "in": "path", "required": true, "schema": { "type": "string" } },
-          { "$ref": "#/components/parameters/limit" },
-          { "$ref": "#/components/parameters/offset" }
+          {
+            "name": "persona_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/limit"
+          },
+          {
+            "$ref": "#/components/parameters/offset"
+          }
         ],
         "responses": {
           "200": {
@@ -1019,33 +1858,89 @@
                       "items": {
                         "type": "object",
                         "properties": {
-                          "id": { "type": "string", "format": "uuid" },
-                          "creator_id": { "type": "string", "format": "uuid" },
-                          "platform": { "type": "string", "enum": ["instagram", "tiktok"] },
-                          "platform_post_id": { "type": "string" },
-                          "post_type": { "type": "string", "enum": ["image", "video", "carousel"] },
-                          "caption": { "type": "string", "nullable": true },
-                          "like_count": { "type": "integer", "nullable": true },
-                          "comment_count": { "type": "integer", "nullable": true },
-                          "posted_at": { "type": "string", "format": "date-time", "nullable": true },
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "creator_id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "platform": {
+                            "type": "string",
+                            "enum": [
+                              "instagram",
+                              "tiktok"
+                            ]
+                          },
+                          "platform_post_id": {
+                            "type": "string"
+                          },
+                          "post_type": {
+                            "type": "string",
+                            "enum": [
+                              "image",
+                              "video",
+                              "carousel"
+                            ]
+                          },
+                          "caption": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "like_count": {
+                            "type": "integer",
+                            "nullable": true
+                          },
+                          "comment_count": {
+                            "type": "integer",
+                            "nullable": true
+                          },
+                          "posted_at": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true
+                          },
                           "media_items": {
                             "type": "array",
                             "items": {
                               "type": "object",
                               "properties": {
-                                "id": { "type": "string", "format": "uuid" },
-                                "media_type": { "type": "string", "enum": ["image", "video"] },
-                                "position": { "type": "integer" },
-                                "url": { "type": "string", "nullable": true },
-                                "duration_seconds": { "type": "number", "nullable": true }
+                                "id": {
+                                  "type": "string",
+                                  "format": "uuid"
+                                },
+                                "media_type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "image",
+                                    "video"
+                                  ]
+                                },
+                                "position": {
+                                  "type": "integer"
+                                },
+                                "url": {
+                                  "type": "string",
+                                  "nullable": true
+                                },
+                                "duration_seconds": {
+                                  "type": "number",
+                                  "nullable": true
+                                }
                               }
                             }
                           },
-                          "created_at": { "type": "string", "format": "date-time" }
+                          "created_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
                         }
                       }
                     },
-                    "count": { "type": "integer" }
+                    "count": {
+                      "type": "integer"
+                    }
                   }
                 }
               }
@@ -1056,14 +1951,27 @@
     },
     "/v1/personas/{persona_id}/generated-posts": {
       "get": {
-        "tags": ["Content"],
+        "tags": [
+          "Content"
+        ],
         "summary": "List generated posts",
         "description": "List generated posts for a persona with their media items.",
         "operationId": "listGeneratedPosts",
         "parameters": [
-          { "name": "persona_id", "in": "path", "required": true, "schema": { "type": "string" } },
-          { "$ref": "#/components/parameters/limit" },
-          { "$ref": "#/components/parameters/offset" }
+          {
+            "name": "persona_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/limit"
+          },
+          {
+            "$ref": "#/components/parameters/offset"
+          }
         ],
         "responses": {
           "200": {
@@ -1073,8 +1981,15 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/GeneratedPost" } },
-                    "count": { "type": "integer" }
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/GeneratedPost"
+                      }
+                    },
+                    "count": {
+                      "type": "integer"
+                    }
                   }
                 }
               }
@@ -1085,7 +2000,9 @@
     },
     "/v1/billing/balance": {
       "get": {
-        "tags": ["Billing"],
+        "tags": [
+          "Billing"
+        ],
         "summary": "Get balance",
         "operationId": "getBalance",
         "responses": {
@@ -1095,7 +2012,11 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": { "data": { "$ref": "#/components/schemas/Balance" } }
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Balance"
+                    }
+                  }
                 }
               }
             }
@@ -1103,9 +2024,11 @@
         }
       },
       "patch": {
-        "tags": ["Billing"],
+        "tags": [
+          "Billing"
+        ],
         "summary": "Update auto-reload settings",
-        "description": "Configure auto-reload settings. Requires `billing:write` scope.\n\nIf `auto_reload: true` is requested and no payment method is saved, a Stripe Checkout setup session is returned (`setup_url`) so the user can add a card — `auto_reload` is **not** saved as `true` in this case.",
+        "description": "Configure auto-reload settings. Requires `billing:write` scope.\n\nIf `auto_reload: true` is requested and no payment method is saved, a Stripe Checkout setup session is returned (`setup_url`) so the user can add a card \u2014 `auto_reload` is **not** saved as `true` in this case.",
         "operationId": "updateAutoReload",
         "requestBody": {
           "required": true,
@@ -1114,9 +2037,18 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "auto_reload": { "type": "boolean", "description": "Enable or disable automatic balance reload" },
-                  "reload_threshold_cents": { "type": "integer", "description": "Balance level (in cents) that triggers an auto-reload" },
-                  "reload_amount_cents": { "type": "integer", "description": "Amount (in cents) to reload when the threshold is hit" }
+                  "auto_reload": {
+                    "type": "boolean",
+                    "description": "Enable or disable automatic balance reload"
+                  },
+                  "reload_threshold_cents": {
+                    "type": "integer",
+                    "description": "Balance level (in cents) that triggers an auto-reload"
+                  },
+                  "reload_amount_cents": {
+                    "type": "integer",
+                    "description": "Amount (in cents) to reload when the threshold is hit"
+                  }
                 }
               }
             }
@@ -1131,15 +2063,30 @@
                   "oneOf": [
                     {
                       "type": "object",
-                      "properties": { "data": { "$ref": "#/components/schemas/Balance" } }
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/Balance"
+                        }
+                      }
                     },
                     {
                       "type": "object",
                       "properties": {
-                        "auto_reload": { "type": "boolean", "enum": [false] },
-                        "setup_url": { "type": "string", "description": "Stripe Checkout URL to save a payment method" }
+                        "auto_reload": {
+                          "type": "boolean",
+                          "enum": [
+                            false
+                          ]
+                        },
+                        "setup_url": {
+                          "type": "string",
+                          "description": "Stripe Checkout URL to save a payment method"
+                        }
                       },
-                      "required": ["auto_reload", "setup_url"]
+                      "required": [
+                        "auto_reload",
+                        "setup_url"
+                      ]
                     }
                   ]
                 }
@@ -1148,14 +2095,22 @@
           },
           "400": {
             "description": "Validation error (e.g., threshold/amount missing when enabling auto_reload)",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
     },
     "/v1/billing/topup": {
       "post": {
-        "tags": ["Billing"],
+        "tags": [
+          "Billing"
+        ],
         "summary": "Create top-up checkout session",
         "description": "Create a Stripe Checkout session to add credits to your balance. Requires `billing:write` scope.",
         "operationId": "createTopup",
@@ -1165,9 +2120,14 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["amount_cents"],
+                "required": [
+                  "amount_cents"
+                ],
                 "properties": {
-                  "amount_cents": { "type": "integer", "description": "Amount in cents to top up. Must be one of the supported values." }
+                  "amount_cents": {
+                    "type": "integer",
+                    "description": "Amount in cents to top up. Must be one of the supported values."
+                  }
                 }
               }
             }
@@ -1181,28 +2141,45 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "url": { "type": "string", "description": "Stripe Checkout URL" }
+                    "url": {
+                      "type": "string",
+                      "description": "Stripe Checkout URL"
+                    }
                   },
-                  "required": ["url"]
+                  "required": [
+                    "url"
+                  ]
                 }
               }
             }
           },
           "400": {
             "description": "Invalid amount",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
     },
     "/v1/billing/transactions": {
       "get": {
-        "tags": ["Billing"],
+        "tags": [
+          "Billing"
+        ],
         "summary": "List transactions",
         "operationId": "listTransactions",
         "parameters": [
-          { "$ref": "#/components/parameters/limit" },
-          { "$ref": "#/components/parameters/offset" }
+          {
+            "$ref": "#/components/parameters/limit"
+          },
+          {
+            "$ref": "#/components/parameters/offset"
+          }
         ],
         "responses": {
           "200": {
@@ -1212,8 +2189,15 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/Transaction" } },
-                    "count": { "type": "integer" }
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Transaction"
+                      }
+                    },
+                    "count": {
+                      "type": "integer"
+                    }
                   }
                 }
               }
@@ -1224,7 +2208,9 @@
     },
     "/v1/profile": {
       "get": {
-        "tags": ["Profile"],
+        "tags": [
+          "Profile"
+        ],
         "summary": "Get profile",
         "operationId": "getProfile",
         "responses": {
@@ -1238,9 +2224,16 @@
                     "data": {
                       "type": "object",
                       "properties": {
-                        "id": { "type": "string", "format": "uuid" },
-                        "name": { "type": "string" },
-                        "email": { "type": "string" }
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        }
                       }
                     }
                   }
@@ -1251,7 +2244,9 @@
         }
       },
       "patch": {
-        "tags": ["Profile"],
+        "tags": [
+          "Profile"
+        ],
         "summary": "Update profile",
         "operationId": "updateProfile",
         "requestBody": {
@@ -1260,9 +2255,13 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["name"],
+                "required": [
+                  "name"
+                ],
                 "properties": {
-                  "name": { "type": "string" }
+                  "name": {
+                    "type": "string"
+                  }
                 }
               }
             }
@@ -1279,9 +2278,16 @@
                     "data": {
                       "type": "object",
                       "properties": {
-                        "id": { "type": "string", "format": "uuid" },
-                        "name": { "type": "string" },
-                        "email": { "type": "string" }
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        }
                       }
                     }
                   }
@@ -1293,7 +2299,9 @@
             "description": "Name already taken",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           }
@@ -1302,23 +2310,34 @@
     },
     "/v1/publishing/accounts/connect": {
       "get": {
-        "tags": ["Publishing"],
+        "tags": [
+          "Publishing"
+        ],
         "summary": "Get OAuth connect URL",
-        "description": "Generate an OAuth URL to connect a new (or reconnect an existing) social account. Requires `publishing:write` scope.\n\nThe OAuth provider will redirect the user's browser to `/api/internal/publishing/accounts/callback` after authorization — this is not a JSON callback.",
+        "description": "Generate an OAuth URL to connect a new (or reconnect an existing) social account. Requires `publishing:write` scope.\n\nThe OAuth provider will redirect the user's browser to `/api/internal/publishing/accounts/callback` after authorization \u2014 this is not a JSON callback.",
         "operationId": "getPublishingConnectUrl",
         "parameters": [
           {
             "name": "platform",
             "in": "query",
             "required": true,
-            "schema": { "type": "string", "enum": ["instagram", "tiktok"] },
+            "schema": {
+              "type": "string",
+              "enum": [
+                "instagram",
+                "tiktok"
+              ]
+            },
             "description": "Social platform to connect"
           },
           {
             "name": "accountId",
             "in": "query",
             "required": false,
-            "schema": { "type": "string", "format": "uuid" },
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
             "description": "ID of an existing connected account to reconnect. Omit for a new connection."
           }
         ],
@@ -1330,27 +2349,46 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "authUrl": { "type": "string", "description": "Redirect the user to this URL to authorize the connection" }
+                    "authUrl": {
+                      "type": "string",
+                      "description": "Redirect the user to this URL to authorize the connection"
+                    }
                   },
-                  "required": ["authUrl"]
+                  "required": [
+                    "authUrl"
+                  ]
                 }
               }
             }
           },
           "400": {
             "description": "Missing platform or name not set",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "402": {
             "description": "No available slot for a new connection",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
     },
     "/v1/publishing/accounts/slots": {
       "get": {
-        "tags": ["Publishing"],
+        "tags": [
+          "Publishing"
+        ],
         "summary": "Get account slots",
         "description": "Return the number of purchased, used, and available account slots. Requires `publishing:read` scope.",
         "operationId": "getPublishingSlots",
@@ -1362,12 +2400,26 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "purchased": { "type": "integer" },
-                    "used": { "type": "integer" },
-                    "available": { "type": "integer" },
-                    "subscriptionId": { "type": "string", "nullable": true }
+                    "purchased": {
+                      "type": "integer"
+                    },
+                    "used": {
+                      "type": "integer"
+                    },
+                    "available": {
+                      "type": "integer"
+                    },
+                    "subscriptionId": {
+                      "type": "string",
+                      "nullable": true
+                    }
                   },
-                  "required": ["purchased", "used", "available", "subscriptionId"]
+                  "required": [
+                    "purchased",
+                    "used",
+                    "available",
+                    "subscriptionId"
+                  ]
                 }
               }
             }
@@ -1375,7 +2427,9 @@
         }
       },
       "post": {
-        "tags": ["Publishing"],
+        "tags": [
+          "Publishing"
+        ],
         "summary": "Purchase account slots",
         "description": "Set the total number of purchased account slots. Creates, updates, or cancels the Stripe subscription accordingly. Returns a `checkoutUrl` when no payment method is on file. Requires `publishing:write` scope.",
         "operationId": "purchasePublishingSlots",
@@ -1385,10 +2439,19 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["slots"],
+                "required": [
+                  "slots"
+                ],
                 "properties": {
-                  "slots": { "type": "integer", "minimum": 0, "description": "Total number of paid slots to set" },
-                  "returnUrl": { "type": "string", "description": "Path to redirect to after Stripe Checkout (used when no card is on file)" }
+                  "slots": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Total number of paid slots to set"
+                  },
+                  "returnUrl": {
+                    "type": "string",
+                    "description": "Path to redirect to after Stripe Checkout (used when no card is on file)"
+                  }
                 }
               }
             }
@@ -1402,25 +2465,45 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "purchased": { "type": "integer" },
-                    "subscriptionId": { "type": "string", "nullable": true },
-                    "checkoutUrl": { "type": "string", "nullable": true, "description": "Stripe Checkout URL when payment collection is needed" }
+                    "purchased": {
+                      "type": "integer"
+                    },
+                    "subscriptionId": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "checkoutUrl": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Stripe Checkout URL when payment collection is needed"
+                    }
                   },
-                  "required": ["purchased", "subscriptionId"]
+                  "required": [
+                    "purchased",
+                    "subscriptionId"
+                  ]
                 }
               }
             }
           },
           "400": {
             "description": "Invalid slots value or cannot reduce below active usage",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
     },
     "/v1/publishing/accounts": {
       "get": {
-        "tags": ["Publishing"],
+        "tags": [
+          "Publishing"
+        ],
         "summary": "List connected accounts",
         "description": "List all publishing accounts (Instagram, TikTok) connected to your profile.",
         "operationId": "listPublishingAccounts",
@@ -1434,7 +2517,9 @@
                   "properties": {
                     "accounts": {
                       "type": "array",
-                      "items": { "$ref": "#/components/schemas/ConnectedAccount" }
+                      "items": {
+                        "$ref": "#/components/schemas/ConnectedAccount"
+                      }
                     }
                   }
                 }
@@ -1446,12 +2531,21 @@
     },
     "/v1/publishing/accounts/{id}": {
       "get": {
-        "tags": ["Publishing"],
+        "tags": [
+          "Publishing"
+        ],
         "summary": "Get account health",
         "description": "Check the health/status of a connected publishing account.",
         "operationId": "getPublishingAccountHealth",
         "parameters": [
-          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -1461,7 +2555,9 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "health": { "type": "object" }
+                    "health": {
+                      "type": "object"
+                    }
                   }
                 }
               }
@@ -1470,12 +2566,21 @@
         }
       },
       "delete": {
-        "tags": ["Publishing"],
+        "tags": [
+          "Publishing"
+        ],
         "summary": "Disconnect account",
         "description": "Disconnect a publishing account from your profile.",
         "operationId": "disconnectPublishingAccount",
         "parameters": [
-          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -1485,7 +2590,9 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean" }
+                    "success": {
+                      "type": "boolean"
+                    }
                   }
                 }
               }
@@ -1496,7 +2603,9 @@
     },
     "/v1/publishing/posts": {
       "get": {
-        "tags": ["Publishing"],
+        "tags": [
+          "Publishing"
+        ],
         "summary": "List outgoing posts",
         "description": "List all outgoing posts for your account, including media items and delivery statuses.",
         "operationId": "listOutgoingPosts",
@@ -1510,7 +2619,9 @@
                   "properties": {
                     "posts": {
                       "type": "array",
-                      "items": { "$ref": "#/components/schemas/OutgoingPost" }
+                      "items": {
+                        "$ref": "#/components/schemas/OutgoingPost"
+                      }
                     }
                   }
                 }
@@ -1520,7 +2631,9 @@
         }
       },
       "post": {
-        "tags": ["Publishing"],
+        "tags": [
+          "Publishing"
+        ],
         "summary": "Create outgoing post",
         "description": "Create a draft outgoing post with media items and target publishing accounts.",
         "operationId": "createOutgoingPost",
@@ -1530,28 +2643,50 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["items"],
+                "required": [
+                  "items"
+                ],
                 "properties": {
-                  "persona_id": { "type": "string", "format": "uuid" },
-                  "caption": { "type": "string" },
+                  "persona_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "caption": {
+                    "type": "string"
+                  },
                   "items": {
                     "type": "array",
                     "description": "Media items to include in the post",
                     "items": {
                       "type": "object",
-                      "required": ["generated_media_item_id", "position"],
+                      "required": [
+                        "generated_media_item_id",
+                        "position"
+                      ],
                       "properties": {
-                        "generated_media_item_id": { "type": "string", "format": "uuid" },
-                        "position": { "type": "integer" },
-                        "use_voice_converted": { "type": "boolean" }
+                        "generated_media_item_id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "position": {
+                          "type": "integer"
+                        },
+                        "use_voice_converted": {
+                          "type": "boolean"
+                        }
                       }
                     }
                   },
                   "target_account_ids": {
                     "type": "array",
-                    "items": { "type": "string", "format": "uuid" }
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
                   },
-                  "platform_settings": { "type": "object" }
+                  "platform_settings": {
+                    "type": "object"
+                  }
                 }
               }
             }
@@ -1565,7 +2700,9 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "post": { "$ref": "#/components/schemas/OutgoingPost" }
+                    "post": {
+                      "$ref": "#/components/schemas/OutgoingPost"
+                    }
                   }
                 }
               }
@@ -1576,11 +2713,20 @@
     },
     "/v1/publishing/posts/{id}": {
       "get": {
-        "tags": ["Publishing"],
+        "tags": [
+          "Publishing"
+        ],
         "summary": "Get outgoing post",
         "operationId": "getOutgoingPost",
         "parameters": [
-          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -1590,7 +2736,9 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "post": { "$ref": "#/components/schemas/OutgoingPost" }
+                    "post": {
+                      "$ref": "#/components/schemas/OutgoingPost"
+                    }
                   }
                 }
               }
@@ -1599,12 +2747,21 @@
         }
       },
       "patch": {
-        "tags": ["Publishing"],
+        "tags": [
+          "Publishing"
+        ],
         "summary": "Update outgoing post",
         "description": "Update caption, platform settings, or other mutable fields on a draft post.",
         "operationId": "updateOutgoingPost",
         "parameters": [
-          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "requestBody": {
           "content": {
@@ -1612,8 +2769,12 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "caption": { "type": "string" },
-                  "platform_settings": { "type": "object" }
+                  "caption": {
+                    "type": "string"
+                  },
+                  "platform_settings": {
+                    "type": "object"
+                  }
                 }
               }
             }
@@ -1627,7 +2788,9 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "post": { "$ref": "#/components/schemas/OutgoingPost" }
+                    "post": {
+                      "$ref": "#/components/schemas/OutgoingPost"
+                    }
                   }
                 }
               }
@@ -1636,11 +2799,20 @@
         }
       },
       "delete": {
-        "tags": ["Publishing"],
+        "tags": [
+          "Publishing"
+        ],
         "summary": "Delete outgoing post",
         "operationId": "deleteOutgoingPost",
         "parameters": [
-          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -1650,7 +2822,9 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean" }
+                    "success": {
+                      "type": "boolean"
+                    }
                   }
                 }
               }
@@ -1661,12 +2835,21 @@
     },
     "/v1/publishing/posts/{id}/publish": {
       "post": {
-        "tags": ["Publishing"],
+        "tags": [
+          "Publishing"
+        ],
         "summary": "Publish now",
         "description": "Immediately publish an outgoing post to all configured accounts.",
         "operationId": "publishOutgoingPost",
         "parameters": [
-          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -1676,7 +2859,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "publishing" }
+                    "status": {
+                      "type": "string",
+                      "example": "publishing"
+                    }
                   }
                 }
               }
@@ -1687,12 +2873,21 @@
     },
     "/v1/publishing/posts/{id}/schedule": {
       "post": {
-        "tags": ["Publishing"],
+        "tags": [
+          "Publishing"
+        ],
         "summary": "Schedule post",
         "description": "Schedule an outgoing post for a future time.",
         "operationId": "scheduleOutgoingPost",
         "parameters": [
-          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "requestBody": {
           "required": true,
@@ -1700,10 +2895,20 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["scheduled_for"],
+                "required": [
+                  "scheduled_for"
+                ],
                 "properties": {
-                  "scheduled_for": { "type": "string", "format": "date-time", "description": "ISO 8601 datetime to publish at" },
-                  "timezone": { "type": "string", "default": "UTC", "description": "IANA timezone name (e.g. America/New_York)" }
+                  "scheduled_for": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "ISO 8601 datetime to publish at"
+                  },
+                  "timezone": {
+                    "type": "string",
+                    "default": "UTC",
+                    "description": "IANA timezone name (e.g. America/New_York)"
+                  }
                 }
               }
             }
@@ -1717,7 +2922,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "scheduled" }
+                    "status": {
+                      "type": "string",
+                      "example": "scheduled"
+                    }
                   }
                 }
               }
@@ -1728,12 +2936,21 @@
     },
     "/v1/publishing/posts/{id}/retry": {
       "post": {
-        "tags": ["Publishing"],
+        "tags": [
+          "Publishing"
+        ],
         "summary": "Retry publish",
         "description": "Retry publishing a post that previously failed.",
         "operationId": "retryOutgoingPost",
         "parameters": [
-          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -1743,7 +2960,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "publishing" }
+                    "status": {
+                      "type": "string",
+                      "example": "publishing"
+                    }
                   }
                 }
               }
@@ -1754,12 +2974,21 @@
     },
     "/v1/publishing/posts/{id}/cancel": {
       "post": {
-        "tags": ["Publishing"],
+        "tags": [
+          "Publishing"
+        ],
         "summary": "Cancel scheduled post",
         "description": "Cancel a scheduled outgoing post before it is published.",
         "operationId": "cancelOutgoingPost",
         "parameters": [
-          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -1769,7 +2998,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "cancelled" }
+                    "status": {
+                      "type": "string",
+                      "example": "cancelled"
+                    }
                   }
                 }
               }
@@ -1780,7 +3012,9 @@
     },
     "/v1/publishing/caption": {
       "post": {
-        "tags": ["Publishing"],
+        "tags": [
+          "Publishing"
+        ],
         "summary": "Generate caption",
         "description": "AI-generate a publishing caption from one or more generated media items, matching the persona's writing style.",
         "operationId": "generateCaption",
@@ -1790,13 +3024,21 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["generated_media_item_ids"],
+                "required": [
+                  "generated_media_item_ids"
+                ],
                 "properties": {
                   "generated_media_item_ids": {
                     "type": "array",
-                    "items": { "type": "string", "format": "uuid" }
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
                   },
-                  "persona_id": { "type": "string", "format": "uuid" }
+                  "persona_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
                 }
               }
             }
@@ -1810,7 +3052,9 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "caption": { "type": "string" }
+                    "caption": {
+                      "type": "string"
+                    }
                   }
                 }
               }
@@ -1821,12 +3065,22 @@
     },
     "/v1/generated-posts/{post_id}/approve": {
       "post": {
-        "tags": ["Review"],
+        "tags": [
+          "Review"
+        ],
         "summary": "Approve generated post",
-        "description": "Approve a generated post pending review. Creates an outgoing post and immediately publishes it to the persona's connected accounts.\n\n**Requires connected accounts.** The persona must have at least one publishing account connected via `GET /v1/publishing/accounts/connect`. If no accounts are connected, the request returns `400`. Connect accounts once via the dashboard — this step requires a browser OAuth flow.",
+        "description": "Approve a generated post pending review. Creates an outgoing post and immediately publishes it to the persona's connected accounts.\n\n**Requires connected accounts.** The persona must have at least one publishing account connected via `GET /v1/publishing/accounts/connect`. If no accounts are connected, the request returns `400`. Connect accounts once via the dashboard \u2014 this step requires a browser OAuth flow.",
         "operationId": "approveGeneratedPost",
         "parameters": [
-          { "name": "post_id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+          {
+            "name": "post_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -1836,8 +3090,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "publishing" },
-                    "outgoing_post_id": { "type": "string", "format": "uuid" }
+                    "status": {
+                      "type": "string",
+                      "example": "publishing"
+                    },
+                    "outgoing_post_id": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
                   }
                 }
               }
@@ -1847,7 +3107,9 @@
             "description": "Post not in a publishable state",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           }
@@ -1856,12 +3118,22 @@
     },
     "/v1/generated-posts/{post_id}/reject": {
       "post": {
-        "tags": ["Review"],
+        "tags": [
+          "Review"
+        ],
         "summary": "Reject generated post",
         "description": "Reject a generated post pending review. Sets review_status to rejected.",
         "operationId": "rejectGeneratedPost",
         "parameters": [
-          { "name": "post_id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+          {
+            "name": "post_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -1871,7 +3143,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "rejected" }
+                    "status": {
+                      "type": "string",
+                      "example": "rejected"
+                    }
                   }
                 }
               }
@@ -1882,12 +3157,22 @@
     },
     "/v1/generated-posts/{post_id}/send-to-compose": {
       "post": {
-        "tags": ["Review"],
+        "tags": [
+          "Review"
+        ],
         "summary": "Send to compose",
         "description": "Approve a generated post and create a draft outgoing post for manual editing in the composer, without publishing immediately.",
         "operationId": "sendGeneratedPostToCompose",
         "parameters": [
-          { "name": "post_id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+          {
+            "name": "post_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -1897,7 +3182,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "outgoing_post_id": { "type": "string", "format": "uuid" }
+                    "outgoing_post_id": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
                   }
                 }
               }
@@ -1908,12 +3196,22 @@
     },
     "/v1/generated-media-items/{item_id}/reject": {
       "post": {
-        "tags": ["Review"],
+        "tags": [
+          "Review"
+        ],
         "summary": "Reject media item",
         "description": "Reject a single generated media item within a post pending review. If all items in the post are rejected, the parent post is auto-rejected.",
         "operationId": "rejectGeneratedMediaItem",
         "parameters": [
-          { "name": "item_id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -1923,8 +3221,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "rejected" },
-                    "post_auto_rejected": { "type": "boolean", "description": "True if all items were rejected and the parent post was auto-rejected" }
+                    "status": {
+                      "type": "string",
+                      "example": "rejected"
+                    },
+                    "post_auto_rejected": {
+                      "type": "boolean",
+                      "description": "True if all items were rejected and the parent post was auto-rejected"
+                    }
                   }
                 }
               }
@@ -1935,7 +3239,9 @@
     },
     "/v1/uploads": {
       "post": {
-        "tags": ["Uploads"],
+        "tags": [
+          "Uploads"
+        ],
         "summary": "Upload file",
         "description": "Upload an avatar image or voice sample. Supports multipart/form-data or JSON with a URL to fetch from. Automatically updates the persona's `avatar_url` or `voice_sample_url` field.",
         "operationId": "upload",
@@ -1944,22 +3250,54 @@
             "multipart/form-data": {
               "schema": {
                 "type": "object",
-                "required": ["file", "category", "persona_id"],
+                "required": [
+                  "file",
+                  "category",
+                  "persona_id"
+                ],
                 "properties": {
-                  "file": { "type": "string", "format": "binary" },
-                  "category": { "type": "string", "enum": ["avatar", "voice"] },
-                  "persona_id": { "type": "string", "format": "uuid" }
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "category": {
+                    "type": "string",
+                    "enum": [
+                      "avatar",
+                      "voice"
+                    ]
+                  },
+                  "persona_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
                 }
               }
             },
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["url", "category", "persona_id"],
+                "required": [
+                  "url",
+                  "category",
+                  "persona_id"
+                ],
                 "properties": {
-                  "url": { "type": "string", "description": "URL to fetch file from" },
-                  "category": { "type": "string", "enum": ["avatar", "voice"] },
-                  "persona_id": { "type": "string", "format": "uuid" }
+                  "url": {
+                    "type": "string",
+                    "description": "URL to fetch file from"
+                  },
+                  "category": {
+                    "type": "string",
+                    "enum": [
+                      "avatar",
+                      "voice"
+                    ]
+                  },
+                  "persona_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
                 }
               }
             }
@@ -1976,13 +3314,507 @@
                     "data": {
                       "type": "object",
                       "properties": {
-                        "key": { "type": "string", "description": "R2 storage key" },
-                        "url": { "type": "string", "description": "Public URL" },
-                        "category": { "type": "string", "enum": ["avatar", "voice"], "description": "Upload category" },
-                        "persona_id": { "type": "string", "format": "uuid", "description": "Persona that was updated" }
+                        "key": {
+                          "type": "string",
+                          "description": "R2 storage key"
+                        },
+                        "url": {
+                          "type": "string",
+                          "description": "Public URL"
+                        },
+                        "category": {
+                          "type": "string",
+                          "enum": [
+                            "avatar",
+                            "voice"
+                          ],
+                          "description": "Upload category"
+                        },
+                        "persona_id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "description": "Persona that was updated"
+                        }
                       }
                     }
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/feedback": {
+      "get": {
+        "tags": [
+          "Feedback"
+        ],
+        "summary": "List feedback",
+        "operationId": "listFeedback",
+        "description": "Returns a paginated list of your feedback tickets, ordered by most recent first.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/limit"
+          },
+          {
+            "$ref": "#/components/parameters/offset"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Feedback list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/FeedbackItem"
+                      }
+                    },
+                    "count": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Feedback"
+        ],
+        "summary": "Submit feedback",
+        "operationId": "submitFeedback",
+        "description": "Submit a new feedback ticket.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "type",
+                  "subject",
+                  "message"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "bug_report",
+                      "feature_request",
+                      "general"
+                    ]
+                  },
+                  "subject": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "message": {
+                    "type": "string",
+                    "maxLength": 5000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Feedback submitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/FeedbackItem"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/feedback/{id}": {
+      "get": {
+        "tags": [
+          "Feedback"
+        ],
+        "summary": "Get feedback thread",
+        "operationId": "getFeedbackThread",
+        "description": "Fetch a single feedback ticket with all responses.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Feedback thread",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/FeedbackItem"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "responses": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/FeedbackResponse"
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/feedback/{id}/responses": {
+      "post": {
+        "tags": [
+          "Feedback"
+        ],
+        "summary": "Reply to feedback",
+        "operationId": "replyToFeedback",
+        "description": "Add a reply to a feedback ticket.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "message"
+                ],
+                "properties": {
+                  "message": {
+                    "type": "string",
+                    "maxLength": 5000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Response posted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/FeedbackResponse"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/signup": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Agent signup",
+        "description": "Create a new account programmatically without CAPTCHA. Returns immediately with `pending_confirmation` status \u2014 a confirmation email is sent to the provided address. The account starts with $0 balance; the $5 welcome bonus is deferred until a payment method is attached via `POST /v1/billing/setup-intent`.\n\nRate limit: **5 signups per IP per 24 hours**. No authentication required.",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "password"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "The agent's email address \u2014 must be a real inbox the agent can read to confirm the account"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 8,
+                    "description": "Strong random password (min 8 chars). Store securely; a human can use 'forgot password' on the dashboard if needed"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Account created \u2014 awaiting email confirmation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "pending_confirmation"
+                      ]
+                    },
+                    "user_id": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Email already registered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded (5 signups per IP per 24 hours)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/billing/setup-intent": {
+      "post": {
+        "tags": [
+          "Billing"
+        ],
+        "summary": "Create SetupIntent for headless card attachment",
+        "description": "Creates a Stripe SetupIntent so an agent can attach a payment method headlessly using the Stripe SDK (no browser redirect required). After the SetupIntent is confirmed, Stripe fires `setup_intent.succeeded` and the server automatically grants the **$5 welcome bonus** if none has been issued yet.\n\nRequired scope: `billing:write`.",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "SetupIntent created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "client_secret": {
+                      "type": "string",
+                      "description": "Stripe SetupIntent client secret (format: `seti_xxx_secret_xxx`). Pass to `stripe.confirmCardSetup()` or the server-side Stripe SDK to complete card attachment."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing billing:write scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
