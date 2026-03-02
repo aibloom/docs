@@ -11,21 +11,21 @@ ReelMirror uses a credit-based billing system. You pre-load your account with cr
 
 | Operation | Cost |
 |-----------|------|
-| Sync (per creator) | $0.02 |
-| Image generation | $0.05 per image |
-| Video generation | $0.20 per video |
-| Voice conversion | $0.15 per video |
+| Sync | $0.03 per API request (min. 3 per creator) |
+| Image generation | $0.32 per image |
+| Video generation | ~$0.15 per second (duration-based) |
+| Voice conversion | ~$0.005 per second (duration-based) |
 
-Generation costs are calculated based on the source post's media items. A post with 3 images costs $0.15. A post with 1 video and 2 images costs $0.30.
+Generation costs are calculated based on the source post's media type and duration. A post with 3 images costs ~$0.96. Video generation scales with clip length — a 30-second video costs approximately $4.85 (including the image clone, video processing, and voice conversion overhead).
 
 ### Discount mode
 
-When generating content, you can set `discount_mode: true` to use lower-quality (faster, cheaper) generation:
+Discount mode is a persona-level setting — enable it via `PATCH /v1/personas/{id}` with `discount_mode: true`. When enabled, all generation for that persona is discounted by 20%:
 
 | Operation | Discount cost |
 |-----------|---------------|
-| Image generation | $0.03 per image |
-| Video generation | $0.12 per video |
+| Image generation | ~$0.26 per image |
+| Video generation | ~$0.12 per second |
 
 ## Checking Your Balance
 
@@ -38,11 +38,13 @@ Response:
 
 ```json
 {
-  "balance_cents": 1050,
-  "balance_dollars": 10.50,
-  "auto_reload": false,
-  "reload_amount_cents": null,
-  "reload_threshold_cents": null
+  "data": {
+    "balance_cents": 1050,
+    "balance_dollars": "10.50",
+    "auto_reload": false,
+    "reload_amount_cents": null,
+    "reload_threshold_cents": null
+  }
 }
 ```
 

@@ -38,7 +38,7 @@ This returns sync job IDs you can poll:
 ```json
 {
   "job_ids": ["uuid-1", "uuid-2"],
-  "total_cost_cents": 4
+  "estimated_cost_cents": 4
 }
 ```
 
@@ -91,6 +91,8 @@ curl https://reelmirror.com/api/v1/generated-posts/GENERATED_POST_ID \
 ```
 
 When all media items have `status: "completed"`, the `url` fields contain your generated content.
+
+Each media item also includes these additional fields: `is_public` (whether the item is publicly visible), `discount_applied` (whether the persona's discount mode was used), and `voice_conversion_status` (status of any voice conversion applied to the item, or `null`).
 
 ## Quick Clone
 
@@ -181,17 +183,17 @@ curl -X POST https://reelmirror.com/api/v1/generate/voice-convert \
   -d '{"generated_media_item_id": "ITEM_ID"}'
 ```
 
-The persona must have a voice sample uploaded. Voice conversion costs $0.15 per video.
+The persona must have a voice sample uploaded. Voice conversion is billed per second of video duration (~$0.005/sec).
 
 ## Making Content Public
 
-Toggle a generated post's public visibility:
+Toggle a generated media item's public visibility:
 
 ```bash
 curl -X POST https://reelmirror.com/api/v1/generate/toggle-public \
   -H "Authorization: Bearer rm_YOUR_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"generated_post_id": "POST_ID"}'
+  -d '{"generated_media_item_id": "ITEM_ID", "is_public": true}'
 ```
 
 <Note>
@@ -221,21 +223,19 @@ Deletion is a soft-delete — billing and analytics data is preserved. After del
 | Status | Meaning |
 |--------|---------|
 | `pending` | Queued for processing |
-| `running` | Currently being generated |
+| `generating` | Currently being generated |
 | `completed` | Done — media URL available |
 | `failed` | Generation failed |
 
 ## Discount Mode
 
-Pass `discount_mode: true` to the generate endpoint for faster, cheaper (but lower quality) generation:
+Discount mode is a persona-level setting that enables faster, cheaper (but lower quality) generation for all content created with that persona. To enable it, update the persona:
 
 ```bash
-curl -X POST https://reelmirror.com/api/v1/generate \
+curl -X PATCH https://reelmirror.com/api/v1/personas/PERSONA_ID \
   -H "Authorization: Bearer rm_YOUR_KEY" \
   -H "Content-Type: application/json" \
-  -d '{
-    "source_post_id": "SOURCE_POST_ID",
-    "persona_id": "PERSONA_ID",
-    "discount_mode": true
-  }'
+  -d '{"discount_mode": true}'
 ```
+
+Once enabled, all subsequent generation requests for that persona automatically use discounted pricing (20% off). See the [Billing guide](/guides/billing) for pricing details.

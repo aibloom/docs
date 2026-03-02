@@ -48,6 +48,7 @@
           "name": { "type": "string" },
           "description": { "type": "string", "nullable": true },
           "writing_style": { "type": "string", "nullable": true },
+          "cloning_style": { "type": "string", "nullable": true },
           "avatar_url": { "type": "string", "nullable": true },
           "voice_sample_url": { "type": "string", "nullable": true },
           "discount_mode": { "type": "boolean" },
@@ -61,7 +62,7 @@
           "creator_id": { "type": "string", "format": "uuid" },
           "platform": { "type": "string", "enum": ["instagram", "tiktok"] },
           "username": { "type": "string" },
-          "status": { "type": "string" },
+          "status": { "type": "string", "enum": ["pending", "synced", "error"] },
           "last_synced_at": { "type": "string", "format": "date-time", "nullable": true },
           "content_count": { "type": "integer" },
           "created_at": { "type": "string", "format": "date-time" }
@@ -347,7 +348,8 @@
                 "properties": {
                   "name": { "type": "string" },
                   "description": { "type": "string" },
-                  "writing_style": { "type": "string" }
+                  "writing_style": { "type": "string" },
+                  "cloning_style": { "type": "string" }
                 }
               }
             }
@@ -431,6 +433,7 @@
                   "name": { "type": "string" },
                   "description": { "type": "string" },
                   "writing_style": { "type": "string" },
+                  "cloning_style": { "type": "string" },
                   "discount_mode": { "type": "boolean" }
                 }
               }
@@ -1011,7 +1014,37 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": { "type": "array", "items": { "type": "object" } },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "string", "format": "uuid" },
+                          "creator_id": { "type": "string", "format": "uuid" },
+                          "platform": { "type": "string", "enum": ["instagram", "tiktok"] },
+                          "platform_post_id": { "type": "string" },
+                          "post_type": { "type": "string", "enum": ["image", "video", "carousel"] },
+                          "caption": { "type": "string", "nullable": true },
+                          "like_count": { "type": "integer", "nullable": true },
+                          "comment_count": { "type": "integer", "nullable": true },
+                          "posted_at": { "type": "string", "format": "date-time", "nullable": true },
+                          "media_items": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": { "type": "string", "format": "uuid" },
+                                "media_type": { "type": "string", "enum": ["image", "video"] },
+                                "position": { "type": "integer" },
+                                "url": { "type": "string", "nullable": true },
+                                "duration_seconds": { "type": "number", "nullable": true }
+                              }
+                            }
+                          },
+                          "created_at": { "type": "string", "format": "date-time" }
+                        }
+                      }
+                    },
                     "count": { "type": "integer" }
                   }
                 }
