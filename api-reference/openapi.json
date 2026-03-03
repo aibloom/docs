@@ -236,6 +236,11 @@
             "type": "string",
             "nullable": true
           },
+          "error": {
+            "type": "string",
+            "nullable": true,
+            "description": "Error message when status is `failed`"
+          },
           "media_items": {
             "type": "array",
             "items": {
@@ -1394,6 +1399,59 @@
       }
     },
     "/v1/personas/{persona_id}/sources/{source_id}": {
+      "get": {
+        "tags": [
+          "Sources"
+        ],
+        "summary": "Get source",
+        "description": "Get a single tracked source by ID. Requires `sources:read` scope.",
+        "operationId": "getSource",
+        "parameters": [
+          {
+            "name": "persona_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "source_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Source details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Source"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Source or persona not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
       "delete": {
         "tags": [
           "Sources"
@@ -2481,6 +2539,36 @@
           },
           {
             "$ref": "#/components/parameters/offset"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "generating",
+                "completed",
+                "failed"
+              ]
+            },
+            "description": "Filter by generation status"
+          },
+          {
+            "name": "review_status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pending_review",
+                "approved",
+                "rejected",
+                "published"
+              ]
+            },
+            "description": "Filter by review status"
           }
         ],
         "responses": {
@@ -2655,14 +2743,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "url": {
-                      "type": "string",
-                      "description": "Stripe Checkout URL"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "url": {
+                          "type": "string",
+                          "description": "Stripe Checkout URL"
+                        }
+                      },
+                      "required": [
+                        "url"
+                      ]
                     }
-                  },
-                  "required": [
-                    "url"
-                  ]
+                  }
                 }
               }
             }
@@ -2863,14 +2956,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "authUrl": {
-                      "type": "string",
-                      "description": "Redirect the user to this URL to authorize the connection"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "auth_url": {
+                          "type": "string",
+                          "description": "Redirect the user to this URL to authorize the connection"
+                        }
+                      },
+                      "required": [
+                        "auth_url"
+                      ]
                     }
-                  },
-                  "required": [
-                    "authUrl"
-                  ]
+                  }
                 }
               }
             }
@@ -2914,26 +3012,31 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "purchased": {
-                      "type": "integer"
-                    },
-                    "used": {
-                      "type": "integer"
-                    },
-                    "available": {
-                      "type": "integer"
-                    },
-                    "subscriptionId": {
-                      "type": "string",
-                      "nullable": true
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "purchased": {
+                          "type": "integer"
+                        },
+                        "used": {
+                          "type": "integer"
+                        },
+                        "available": {
+                          "type": "integer"
+                        },
+                        "subscriptionId": {
+                          "type": "string",
+                          "nullable": true
+                        }
+                      },
+                      "required": [
+                        "purchased",
+                        "used",
+                        "available",
+                        "subscriptionId"
+                      ]
                     }
-                  },
-                  "required": [
-                    "purchased",
-                    "used",
-                    "available",
-                    "subscriptionId"
-                  ]
+                  }
                 }
               }
             }
@@ -2979,23 +3082,28 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "purchased": {
-                      "type": "integer"
-                    },
-                    "subscriptionId": {
-                      "type": "string",
-                      "nullable": true
-                    },
-                    "checkoutUrl": {
-                      "type": "string",
-                      "nullable": true,
-                      "description": "Stripe Checkout URL when payment collection is needed"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "purchased": {
+                          "type": "integer"
+                        },
+                        "subscriptionId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "checkoutUrl": {
+                          "type": "string",
+                          "nullable": true,
+                          "description": "Stripe Checkout URL when payment collection is needed"
+                        }
+                      },
+                      "required": [
+                        "purchased",
+                        "subscriptionId"
+                      ]
                     }
-                  },
-                  "required": [
-                    "purchased",
-                    "subscriptionId"
-                  ]
+                  }
                 }
               }
             }
@@ -3721,6 +3829,26 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Generated post not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Publish failed after approval",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
@@ -3765,6 +3893,26 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Post is not pending review",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Generated post not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
@@ -3806,6 +3954,26 @@
                       }
                     }
                   }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Post not in a composable state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Generated post not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -3854,6 +4022,26 @@
                       }
                     }
                   }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Post is not pending review",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Media item not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -4340,15 +4528,20 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": {
-                      "type": "string",
-                      "enum": [
-                        "pending_confirmation"
-                      ]
-                    },
-                    "user_id": {
-                      "type": "string",
-                      "format": "uuid"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "pending_confirmation"
+                          ]
+                        },
+                        "user_id": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      }
                     }
                   }
                 }
@@ -4414,9 +4607,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "client_secret": {
-                      "type": "string",
-                      "description": "Stripe SetupIntent client secret (format: `seti_xxx_secret_xxx`). Pass to `stripe.confirmCardSetup()` or the server-side Stripe SDK to complete card attachment."
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "client_secret": {
+                          "type": "string",
+                          "description": "Stripe SetupIntent client secret (format: `seti_xxx_secret_xxx`). Pass to `stripe.confirmCardSetup()` or the server-side Stripe SDK to complete card attachment."
+                        }
+                      }
                     }
                   }
                 }
