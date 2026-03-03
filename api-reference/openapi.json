@@ -116,8 +116,9 @@
               "tiktok"
             ]
           },
-          "username": {
-            "type": "string"
+          "handle": {
+            "type": "string",
+            "description": "Social account handle (e.g. `natgeo`)"
           },
           "automation_mode": {
             "type": "string",
@@ -212,6 +213,7 @@
           },
           "review_status": {
             "type": "string",
+            "nullable": true,
             "enum": [
               "pending_review",
               "approved",
@@ -219,6 +221,16 @@
               "published"
             ],
             "description": "Review lifecycle state. `pending_review` = awaiting action; `approved` = approved but not yet published; `rejected` = rejected; `published` = published to at least one account."
+          },
+          "trigger_source": {
+            "type": "string",
+            "nullable": true,
+            "description": "How this generation was triggered. `manual` = user-initiated, `auto_clone` = automatic cloning from source, `api` = via API.",
+            "enum": [
+              "manual",
+              "auto_clone",
+              "api"
+            ]
           },
           "caption": {
             "type": "string",
@@ -657,6 +669,10 @@
   },
   "tags": [
     {
+      "name": "Discovery",
+      "description": "API metadata and discovery"
+    },
+    {
       "name": "API Keys",
       "description": "Manage API keys"
     },
@@ -706,6 +722,70 @@
     }
   ],
   "paths": {
+    "/v1/": {
+      "get": {
+        "tags": [
+          "Discovery"
+        ],
+        "summary": "API discovery",
+        "description": "Returns API metadata including version, available endpoints, authentication methods, and scopes. No authentication required.",
+        "operationId": "getApiDiscovery",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "API metadata",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "example": "ReelMirror API"
+                    },
+                    "version": {
+                      "type": "string",
+                      "example": "v1"
+                    },
+                    "docs": {
+                      "type": "string",
+                      "example": "https://reelmirror.com/docs"
+                    },
+                    "endpoints": {
+                      "type": "object",
+                      "description": "Map of endpoint categories to their base paths"
+                    },
+                    "auth": {
+                      "type": "object",
+                      "properties": {
+                        "methods": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "example": ["api_key", "jwt"]
+                        },
+                        "header": {
+                          "type": "string",
+                          "example": "Authorization: Bearer {token}"
+                        }
+                      }
+                    },
+                    "scopes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Available API permission scopes"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/api-keys": {
       "post": {
         "tags": [
@@ -754,30 +834,35 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "id": {
-                      "type": "string"
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "key": {
-                      "type": "string",
-                      "description": "Full API key (only shown once)"
-                    },
-                    "scopes": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "key": {
+                          "type": "string",
+                          "description": "Full API key (only shown once)"
+                        },
+                        "scopes": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "created_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "monthly_limit_cents": {
+                          "type": "integer",
+                          "nullable": true,
+                          "description": "Monthly spending limit in cents, or null for unlimited"
+                        }
                       }
-                    },
-                    "created_at": {
-                      "type": "string",
-                      "format": "date-time"
-                    },
-                    "monthly_limit_cents": {
-                      "type": "integer",
-                      "nullable": true,
-                      "description": "Monthly spending limit in cents, or null for unlimited"
                     }
                   }
                 }
@@ -893,15 +978,20 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "id": {
-                      "type": "string"
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "monthly_limit_cents": {
-                      "type": "integer",
-                      "nullable": true
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "monthly_limit_cents": {
+                          "type": "integer",
+                          "nullable": true
+                        }
+                      }
                     }
                   }
                 }
@@ -934,11 +1024,17 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": {
-                      "type": "string"
-                    },
-                    "id": {
-                      "type": "string"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "deleted": {
+                          "type": "boolean",
+                          "enum": [true]
+                        }
+                      }
                     }
                   }
                 }
@@ -1158,11 +1254,17 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": {
-                      "type": "string"
-                    },
-                    "id": {
-                      "type": "string"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "deleted": {
+                          "type": "boolean",
+                          "enum": [true]
+                        }
+                      }
                     }
                   }
                 }
@@ -1197,7 +1299,7 @@
                 "type": "object",
                 "required": [
                   "platform",
-                  "username"
+                  "handle"
                 ],
                 "properties": {
                   "platform": {
@@ -1207,8 +1309,9 @@
                       "tiktok"
                     ]
                   },
-                  "username": {
-                    "type": "string"
+                  "handle": {
+                    "type": "string",
+                    "description": "Social account handle (e.g. `natgeo`). Leading `@` is stripped automatically."
                   },
                   "automation_mode": {
                     "type": "string",
@@ -1323,11 +1426,17 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": {
-                      "type": "string"
-                    },
-                    "id": {
-                      "type": "string"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "deleted": {
+                          "type": "boolean",
+                          "enum": [true]
+                        }
+                      }
                     }
                   }
                 }
@@ -1533,11 +1642,17 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": {
-                      "type": "string"
-                    },
-                    "id": {
-                      "type": "string"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "deleted": {
+                          "type": "boolean",
+                          "enum": [true]
+                        }
+                      }
                     }
                   }
                 }
@@ -1675,11 +1790,18 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": {
-                      "type": "string"
-                    },
-                    "generated_post_id": {
-                      "type": "string"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "description": "The generated post ID"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": ["started"]
+                        }
+                      }
                     }
                   }
                 }
@@ -1724,11 +1846,18 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": {
-                      "type": "string"
-                    },
-                    "generated_media_item_id": {
-                      "type": "string"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "description": "The new generated media item ID"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": ["started"]
+                        }
+                      }
                     }
                   }
                 }
@@ -1773,11 +1902,18 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": {
-                      "type": "string"
-                    },
-                    "generated_media_item_id": {
-                      "type": "string"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "description": "The generated media item ID"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": ["started"]
+                        }
+                      }
                     }
                   }
                 }
@@ -1885,11 +2021,18 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": {
-                      "type": "string"
-                    },
-                    "generated_post_id": {
-                      "type": "string"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "description": "The generated post ID"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": ["started"]
+                        }
+                      }
                     }
                   }
                 }
@@ -1937,64 +2080,73 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "oneOf": [
-                    {
-                      "type": "object",
-                      "description": "Full regeneration response",
-                      "properties": {
-                        "status": {
-                          "type": "string"
-                        },
-                        "generated_post_id": {
-                          "type": "string"
-                        }
-                      }
-                    },
-                    {
-                      "type": "object",
-                      "description": "Failed-only retry response",
-                      "properties": {
-                        "status": {
-                          "type": "string"
-                        },
-                        "generated_post_id": {
-                          "type": "string"
-                        },
-                        "retried_items": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "original_item_id": {
-                                "type": "string",
-                                "format": "uuid"
-                              },
-                              "new_item_id": {
-                                "type": "string",
-                                "format": "uuid"
-                              },
-                              "media_type": {
-                                "type": "string",
-                                "enum": [
-                                  "image",
-                                  "video"
-                                ]
-                              },
-                              "status": {
-                                "type": "string",
-                                "enum": [
-                                  "pending"
-                                ]
-                              }
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "description": "Full regeneration response",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "description": "The generated post ID"
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": ["started"]
                             }
                           }
                         },
-                        "total_cost_cents": {
-                          "type": "integer"
+                        {
+                          "type": "object",
+                          "description": "Failed-only retry response",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "description": "The generated post ID"
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": ["started"]
+                            },
+                            "retried_items": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "original_item_id": {
+                                    "type": "string",
+                                    "format": "uuid"
+                                  },
+                                  "new_item_id": {
+                                    "type": "string",
+                                    "format": "uuid"
+                                  },
+                                  "media_type": {
+                                    "type": "string",
+                                    "enum": [
+                                      "image",
+                                      "video"
+                                    ]
+                                  },
+                                  "status": {
+                                    "type": "string",
+                                    "enum": [
+                                      "pending"
+                                    ]
+                                  }
+                                }
+                              }
+                            },
+                            "total_cost_cents": {
+                              "type": "integer"
+                            }
+                          }
                         }
-                      }
+                      ]
                     }
-                  ]
+                  }
                 }
               }
             }
@@ -2078,11 +2230,17 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": {
-                      "type": "string"
-                    },
-                    "id": {
-                      "type": "string"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "deleted": {
+                          "type": "boolean",
+                          "enum": [true]
+                        }
+                      }
                     }
                   }
                 }
@@ -2153,11 +2311,17 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": {
-                      "type": "string"
-                    },
-                    "id": {
-                      "type": "string"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "deleted": {
+                          "type": "boolean",
+                          "enum": [true]
+                        }
+                      }
                     }
                   }
                 }
@@ -2928,8 +3092,9 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "health": {
-                      "type": "object"
+                    "data": {
+                      "type": "object",
+                      "description": "Account health information"
                     }
                   }
                 }
@@ -2963,8 +3128,17 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": {
-                      "type": "boolean"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "deleted": {
+                          "type": "boolean",
+                          "enum": [true]
+                        }
+                      }
                     }
                   }
                 }
@@ -3096,7 +3270,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "post": {
+                    "data": {
                       "$ref": "#/components/schemas/OutgoingPost"
                     }
                   }
@@ -3132,7 +3306,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "post": {
+                    "data": {
                       "$ref": "#/components/schemas/OutgoingPost"
                     }
                   }
@@ -3184,7 +3358,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "post": {
+                    "data": {
                       "$ref": "#/components/schemas/OutgoingPost"
                     }
                   }
@@ -3218,8 +3392,17 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": {
-                      "type": "boolean"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "deleted": {
+                          "type": "boolean",
+                          "enum": [true]
+                        }
+                      }
                     }
                   }
                 }
@@ -3255,9 +3438,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": {
-                      "type": "string",
-                      "example": "publishing"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "example": "publishing"
+                        }
+                      }
                     }
                   }
                 }
@@ -3318,9 +3506,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": {
-                      "type": "string",
-                      "example": "scheduled"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "example": "scheduled"
+                        }
+                      }
                     }
                   }
                 }
@@ -3356,9 +3549,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": {
-                      "type": "string",
-                      "example": "publishing"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "example": "publishing"
+                        }
+                      }
                     }
                   }
                 }
@@ -3394,9 +3592,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": {
-                      "type": "string",
-                      "example": "cancelled"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "example": "cancelled"
+                        }
+                      }
                     }
                   }
                 }
@@ -3448,8 +3651,13 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "caption": {
-                      "type": "string"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "caption": {
+                          "type": "string"
+                        }
+                      }
                     }
                   }
                 }
@@ -3486,13 +3694,18 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": {
-                      "type": "string",
-                      "example": "publishing"
-                    },
-                    "outgoing_post_id": {
-                      "type": "string",
-                      "format": "uuid"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "example": "publishing"
+                        },
+                        "outgoing_post_id": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      }
                     }
                   }
                 }
@@ -3539,9 +3752,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": {
-                      "type": "string",
-                      "example": "rejected"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "example": "rejected"
+                        }
+                      }
                     }
                   }
                 }
@@ -3578,9 +3796,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "outgoing_post_id": {
-                      "type": "string",
-                      "format": "uuid"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "outgoing_post_id": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      }
                     }
                   }
                 }
@@ -3617,13 +3840,18 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": {
-                      "type": "string",
-                      "example": "rejected"
-                    },
-                    "post_auto_rejected": {
-                      "type": "boolean",
-                      "description": "True if all items were rejected and the parent post was auto-rejected"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "example": "rejected"
+                        },
+                        "post_auto_rejected": {
+                          "type": "boolean",
+                          "description": "True if all items were rejected and the parent post was auto-rejected"
+                        }
+                      }
                     }
                   }
                 }
