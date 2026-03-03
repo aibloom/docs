@@ -87,13 +87,14 @@ Auto-reload is **off by default** — the agent must explicitly opt in. This req
 Once the above are done once, a bot can run the complete loop indefinitely:
 
 1. Create and configure personas
-2. Add source accounts (Instagram/TikTok handles)
-3. Trigger content sync, poll until complete
-4. Browse synced source posts
-5. Generate new content, poll until complete
-6. Approve and publish (or reject)
-7. Poll delivery status
-8. Manage billing (check balance, toggle auto-reload if card on file)
+2. Add source accounts with automation mode (`sync_only`, `auto_clone`, or `auto_publish`)
+3. Link publishing targets to personas (`POST /v1/personas/{id}/publishing-targets`)
+4. Trigger content sync, poll until complete
+5. Browse synced source posts
+6. Generate new content, poll until complete
+7. Approve and publish (or reject)
+8. Poll delivery status
+9. Manage billing (check balance, toggle auto-reload if card on file)
 
 ---
 
@@ -137,10 +138,44 @@ curl -X POST "https://reelmirror.com/api/v1/personas" \
 ### Step 2: Add source accounts
 
 ```bash
+# Add a source with automation mode (default: sync_only)
 curl -X POST "https://reelmirror.com/api/v1/personas/{persona_id}/sources" \
   -H "Authorization: Bearer rm_your_key" \
   -H "Content-Type: application/json" \
-  -d '{"platform": "instagram", "username": "target_creator"}'
+  -d '{"platform": "instagram", "username": "target_creator", "automation_mode": "auto_publish"}'
+# automation_mode options:
+#   "sync_only"     — sync content only (default)
+#   "auto_clone"    — sync + auto-generate clones
+#   "auto_publish"  — sync + generate + publish automatically
+```
+
+You can update the automation mode later:
+
+```bash
+curl -X PATCH "https://reelmirror.com/api/v1/personas/{persona_id}/sources/{source_id}" \
+  -H "Authorization: Bearer rm_your_key" \
+  -H "Content-Type: application/json" \
+  -d '{"automation_mode": "auto_clone"}'
+```
+
+### Step 2b: Configure publishing targets
+
+Before using `auto_publish`, link connected publishing accounts to the persona. Accounts must be connected via OAuth in the dashboard first.
+
+```bash
+# List your connected accounts
+curl "https://reelmirror.com/api/v1/publishing/accounts" \
+  -H "Authorization: Bearer rm_your_key"
+
+# Link an account to the persona
+curl -X POST "https://reelmirror.com/api/v1/personas/{persona_id}/publishing-targets" \
+  -H "Authorization: Bearer rm_your_key" \
+  -H "Content-Type: application/json" \
+  -d '{"connected_account_id": "account_uuid"}'
+
+# Verify targets
+curl "https://reelmirror.com/api/v1/personas/{persona_id}/publishing-targets" \
+  -H "Authorization: Bearer rm_your_key"
 ```
 
 ### Step 3: Trigger sync and poll

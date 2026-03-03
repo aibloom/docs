@@ -119,6 +119,16 @@
           "username": {
             "type": "string"
           },
+          "automation_mode": {
+            "type": "string",
+            "enum": [
+              "sync_only",
+              "auto_clone",
+              "auto_publish"
+            ],
+            "default": "sync_only",
+            "description": "Automation level: `sync_only` = sync content only, `auto_clone` = sync + auto-generate clones, `auto_publish` = sync + generate + publish automatically"
+          },
           "status": {
             "type": "string",
             "enum": [
@@ -134,6 +144,41 @@
           },
           "content_count": {
             "type": "integer"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PublishingTarget": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "connected_account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "instagram",
+              "tiktok"
+            ]
+          },
+          "username": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "expired",
+              "error"
+            ]
           },
           "created_at": {
             "type": "string",
@@ -1083,6 +1128,16 @@
                   },
                   "username": {
                     "type": "string"
+                  },
+                  "automation_mode": {
+                    "type": "string",
+                    "enum": [
+                      "sync_only",
+                      "auto_clone",
+                      "auto_publish"
+                    ],
+                    "default": "sync_only",
+                    "description": "Automation level for this source. Defaults to `sync_only`."
                   }
                 }
               }
@@ -1182,6 +1237,216 @@
         "responses": {
           "200": {
             "description": "Source removed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Sources"
+        ],
+        "summary": "Update source",
+        "description": "Update source settings such as automation mode. Requires `sources:write` scope.",
+        "operationId": "updateSource",
+        "parameters": [
+          {
+            "name": "persona_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "source_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "automation_mode": {
+                    "type": "string",
+                    "enum": [
+                      "sync_only",
+                      "auto_clone",
+                      "auto_publish"
+                    ],
+                    "description": "Automation level for this source"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Source updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Source"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/personas/{persona_id}/publishing-targets": {
+      "get": {
+        "tags": [
+          "Publishing"
+        ],
+        "summary": "List publishing targets",
+        "description": "List connected publishing accounts linked to a persona. These determine where auto-published content is delivered. Requires `publishing:read` scope.",
+        "operationId": "listPublishingTargets",
+        "parameters": [
+          {
+            "name": "persona_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of publishing targets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PublishingTarget"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Publishing"
+        ],
+        "summary": "Add publishing target",
+        "description": "Link a connected publishing account to a persona. The account must already be connected via OAuth (dashboard). Requires `publishing:write` scope.",
+        "operationId": "addPublishingTarget",
+        "parameters": [
+          {
+            "name": "persona_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "connected_account_id"
+                ],
+                "properties": {
+                  "connected_account_id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "ID of a connected publishing account from `GET /v1/publishing/accounts`"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Publishing target linked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/PublishingTarget"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Target already linked to this persona"
+          }
+        }
+      }
+    },
+    "/v1/personas/{persona_id}/publishing-targets/{target_id}": {
+      "delete": {
+        "tags": [
+          "Publishing"
+        ],
+        "summary": "Remove publishing target",
+        "description": "Unlink a publishing account from a persona. Requires `publishing:write` scope.",
+        "operationId": "removePublishingTarget",
+        "parameters": [
+          {
+            "name": "persona_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "target_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Publishing target removed",
             "content": {
               "application/json": {
                 "schema": {
