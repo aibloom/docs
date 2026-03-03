@@ -733,6 +733,13 @@
                       "type": "string"
                     },
                     "description": "Permission scopes. Defaults to all except billing:read, billing:write, feedback:read, and feedback:write."
+                  },
+                  "monthly_limit_cents": {
+                    "type": "integer",
+                    "nullable": true,
+                    "description": "Optional monthly spending limit in cents. Min 100 ($1), max 1000000 ($10,000). Null for unlimited.",
+                    "minimum": 100,
+                    "maximum": 1000000
                   }
                 }
               }
@@ -766,6 +773,11 @@
                     "created_at": {
                       "type": "string",
                       "format": "date-time"
+                    },
+                    "monthly_limit_cents": {
+                      "type": "integer",
+                      "nullable": true,
+                      "description": "Monthly spending limit in cents, or null for unlimited"
                     }
                   }
                 }
@@ -816,6 +828,15 @@
                             "type": "string",
                             "format": "date-time",
                             "nullable": true
+                          },
+                          "monthly_limit_cents": {
+                            "type": "integer",
+                            "nullable": true,
+                            "description": "Monthly spending limit in cents, or null for unlimited"
+                          },
+                          "monthly_spent_cents": {
+                            "type": "integer",
+                            "description": "Current month spending in cents (0 if no limit set)"
                           }
                         }
                       }
@@ -829,6 +850,66 @@
       }
     },
     "/v1/api-keys/{key_id}": {
+      "patch": {
+        "tags": [
+          "API Keys"
+        ],
+        "summary": "Update API key spending limit",
+        "operationId": "updateApiKey",
+        "parameters": [
+          {
+            "name": "key_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "monthly_limit_cents": {
+                    "type": "integer",
+                    "nullable": true,
+                    "description": "Monthly spending limit in cents. Set to null to remove limit.",
+                    "minimum": 100,
+                    "maximum": 1000000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Key updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "monthly_limit_cents": {
+                      "type": "integer",
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "delete": {
         "tags": [
           "API Keys"

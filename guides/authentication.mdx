@@ -173,9 +173,65 @@ X-RateLimit-Reset: 1704067260
 
 When the limit is exceeded, the API returns a `429` status with the `RATE_LIMITED` error code.
 
+## Monthly Spending Limits
+
+Each API key can have an optional monthly spending limit. When set, the API will reject requests that would cause the key's total spending for the current calendar month (UTC) to exceed the limit.
+
+### Setting a limit
+
+Set `monthly_limit_cents` when creating or updating a key:
+
+```bash
+# Create a key with a $50/month limit
+curl -X POST https://reelmirror.com/api/v1/api-keys \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Limited Key", "monthly_limit_cents": 5000}'
+
+# Update an existing key's limit
+curl -X PATCH https://reelmirror.com/api/v1/api-keys/KEY_ID \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"monthly_limit_cents": 10000}'
+
+# Remove the limit (unlimited)
+curl -X PATCH https://reelmirror.com/api/v1/api-keys/KEY_ID \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"monthly_limit_cents": null}'
+```
+
+### How it works
+
+- Limits are checked before every billable operation (sync, generate, clone-url, voice conversion)
+- The limit resets on the 1st of each month (UTC)
+- When exceeded, the API returns a `429` status with the `KEY_SPENDING_LIMIT_EXCEEDED` error code
+- The `monthly_spent_cents` field on the list endpoint shows current-month spending per key
+- JWT/cookie auth (dashboard usage) is never subject to key spending limits
+- Valid range: $1.00 (100 cents) to $10,000.00 (1,000,000 cents)
+
+### Checking current spending
+
+The list API keys endpoint includes `monthly_spent_cents` for keys that have a limit configured:
+
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "name": "Limited Key",
+      "monthly_limit_cents": 5000,
+      "monthly_spent_cents": 1250,
+      ...
+    }
+  ]
+}
+```
+
 ## Security Best Practices
 
 - **Never expose API keys in client-side code.** Use them only in server-side applications.
 - **Use the minimum scopes necessary.** Create separate keys for different services with only the scopes they need.
+- **Set spending limits on API keys.** Protect against abuse or key theft by capping monthly spend per key.
 - **Rotate keys regularly.** Delete old keys and create new ones periodically.
 - **Monitor usage.** Check `last_used_at` on your API keys via the list endpoint.
