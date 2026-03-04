@@ -2935,7 +2935,7 @@
                 "tiktok"
               ]
             },
-            "description": "Social platform to connect"
+            "description": "Social platform to connect. Note: TikTok support is in alpha."
           },
           {
             "name": "accountId",
@@ -3127,7 +3127,7 @@
           "Publishing"
         ],
         "summary": "List connected accounts",
-        "description": "List all publishing accounts (Instagram, TikTok) connected to your profile.",
+        "description": "List all publishing accounts (Instagram, TikTok (alpha)) connected to your profile.",
         "operationId": "listPublishingAccounts",
         "parameters": [
           {
