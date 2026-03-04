@@ -208,6 +208,7 @@
               "pending",
               "generating",
               "completed",
+              "partial",
               "failed"
             ]
           },
@@ -1834,6 +1835,11 @@
                   "persona_id": {
                     "type": "string",
                     "format": "uuid"
+                  },
+                  "auto_publish": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "When true, automatically publish to persona's connected accounts when generation completes"
                   }
                 }
               }
@@ -2550,6 +2556,7 @@
                 "pending",
                 "generating",
                 "completed",
+                "partial",
                 "failed"
               ]
             },
